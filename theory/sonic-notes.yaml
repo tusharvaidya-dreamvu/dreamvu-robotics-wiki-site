@@ -1,0 +1,192 @@
+meta:
+  title: "SONIC: Supersizing Motion Tracking for Natural Humanoid Whole-Body Control"
+  subtitle: Paper Review — DreamVu Research
+  date: "2026-05-21"
+  theme: dark
+
+slides:
+
+  - type: title
+    title: "SONIC"
+    subtitle: "Supersizing Motion Tracking for Natural Humanoid Whole-Body Control"
+    meta: "Luo*, Yuan*, Wang*, Li* et al. · NVIDIA · arXiv 2511.07820"
+
+  - type: section
+    label: "Motivation"
+    title: "The Scaling Gap in Humanoid Control"
+
+  - type: bullets
+    title: "Scaling Laws Everywhere — Except Robotics"
+    intro: "LLMs and vision models scale predictably. Humanoid control does not — until now."
+    points:
+      - "Prior neural controllers: **a few million parameters**, trained on a handful of GPUs"
+      - "Every new skill needs **bespoke reward engineering** — locomotion ≠ dancing ≠ manipulation"
+      - "Motion tracking results shown mostly on **training data** — no downstream task demos"
+      - "No system unified teleoperation, video, text, and music in **a single policy**"
+    highlight: "Core thesis: motion-capture-supervised tracking is the scalable foundational task for humanoid control — analogous to next-token prediction for LLMs."
+
+  - type: bullets
+    title: "SONIC: One Policy, Six Interfaces"
+    intro: "A single trained policy accepts all of these simultaneously — no separate training stages."
+    points:
+      - ":joystick: **Gamepad / Joystick** — interactive navigation with style"
+      - ":vr: **VR headset + controllers** — full-body teleoperation"
+      - ":video: **Video** — zero-shot motion imitation from camera"
+      - ":text: **Text** — language-commanded motion styles"
+      - ":musical_note: **Music** — audio-synchronized dancing"
+      - ":robot: **VLA model** (GR00T N1.5) — loco-manipulation from vision-language commands"
+
+  - type: section
+    label: "Architecture"
+    title: "Universal Control Policy"
+
+  - type: two_column
+    title: "Three Encoders → One Token Space"
+    left_title: "Inputs (pick one or more)"
+    left_points:
+      - "**Robot motion** E_r: joint positions/velocities, F_r future frames"
+      - "**Human SMPL** E_h: 3D joint positions, F_h future frames"
+      - "**Hybrid** E_m: sparse head + wrist keypoints + lower-body robot motion"
+    right_title: "Shared Latent (FSQ)"
+    right_points:
+      - "All encoders map to the **same latent space**"
+      - "Finite Scalar Quantization → universal token z"
+      - "Robot control decoder → motor commands"
+      - "Robot motion decoder → reconstructed motion (auxiliary)"
+
+  - type: bullets
+    title: "The 4-Term Training Loss"
+    intro: "All four losses are needed — L_token and L_cycle are called out as critical."
+    points:
+      - "**L_PPO** — standard RL loss (PPO) for motor control"
+      - "**L_recon** — reconstruction across all modalities; acts as cross-embodiment retargeting when input is human SMPL"
+      - "**L_token** = ||z_r − z_h||² — forces robot & human motion into the **same token space**"
+      - "**L_cycle** = ||E_r(D_r(z_h)) − z_r||² — cycle consistency; reinforces cross-embodiment alignment"
+    highlight: "L_token + L_cycle enable zero-shot human → robot transfer without any explicit retargeting at test time."
+
+  - type: bullets
+    title: "Real-Time Kinematic Motion Planner"
+    intro: "Sits above the tracking policy. Generates motion tokens in real-time from user intent."
+    points:
+      - "**Masked Token Prediction** — iteratively fills motion sequence with highest-confidence tokens first (cosine masking schedule)"
+      - "**Spring-based root trajectory** — critically damped spring converts gamepad input to smooth pelvis x/y + heading"
+      - "**Temporal downsampling** — 4× compression via learned tokenizer keeps sequence short"
+      - "**Speed:** <5 ms on laptop · 12 ms on Jetson Orin — fully onboard-deployable"
+      - "Replanning every **100 ms** or on command update"
+
+  - type: bullets
+    title: "GENMO: Multi-Modal Motion Generation"
+    intro: "A separate module that conditions the motion planner on text, video, or audio."
+    points:
+      - "Temporal transformer with **cross-attention** from motion tokens to multi-modal condition tokens"
+      - "**Diffusion-based** motion prior for generation"
+      - "Inference modes: pure generation (text/audio), constrained (video), hybrid switching"
+      - "Integrates with SONIC via **sliding window + diffusion inpainting** for low-latency transitions"
+
+  - type: section
+    label: "Data & Scale"
+    title: "700 Hours. 128 GPUs. 3 Days."
+
+  - type: stats
+    title: "Dataset & Training Scale"
+    stats:
+      - value: "700 hrs"
+        label: "in-house MoCap — 100M+ frames @ 50 Hz"
+      - value: "170"
+        label: "subjects, heights 145–199 cm"
+      - value: "128 GPUs"
+        label: "3 days = ~32,000 GPU hours"
+      - value: "42M"
+        label: "parameters (largest model variant)"
+      - value: "1,602"
+        label: "unseen AMASS test trajectories"
+      - value: "100%"
+        label: "sim-to-real success on Unitree G1"
+
+  - type: two_column
+    title: "Scaling Laws: Three Independent Axes"
+    left_title: "What Was Scaled"
+    left_points:
+      - "**Dataset size:** 0.4M (LaFAN) → 7.4M → 100M frames"
+      - "**Model size:** 1.2M → 42M parameters"
+      - "**Compute:** 8 → 32 → 128 GPUs"
+    right_title: "What Improved"
+    right_points:
+      - "All three axes show consistent, monotonic MPJPE improvement"
+      - "Dataset size has the **steepest marginal gain**"
+      - "128 GPUs needed for convergence at full data scale"
+      - "First empirical scaling law demonstrated for humanoid motor control"
+
+  - type: bullets
+    title: "Adaptive Motion Sampling"
+    intro: "Prevents the policy from collapsing to easy data during training."
+    points:
+      - "Motions binned by difficulty; **high-failure bins sampled more** often"
+      - "Sampling rate capped at β × average failure rate to avoid overcorrection"
+      - "Blended with uniform distribution — automatic curriculum without manual scheduling"
+      - "Retargeting: human SMPL → robot via **GMR and PyRoki** toolchains"
+
+  - type: section
+    label: "Results"
+    title: "Benchmarks & Real World"
+
+  - type: table
+    title: "Zero-Shot AMASS Benchmark (Unseen 9 hrs, 1,602 trajectories)"
+    note: "MuJoCo evaluation. MPJPE, Eacc, Evel lower is better. Success rate higher is better."
+    headers: ["Method", "Train Data", "Success ↑", "MPJPE ↓ (mm)", "Eacc ↓", "Evel ↓"]
+    rows:
+      - ["Any2Track", "LaFAN 0.4M", "~75%", "~80", "~4,000", "~90"]
+      - ["BeyondMimic", "LaFAN 0.4M", "~70%", "~95", "~4,500", "~105"]
+      - ["GMT", "AMASS", "~80%", "~70", "~3,500", "~75"]
+      - ["**SONIC (ours)**", "**In-house 100M**", "**~95%**", "**~40**", "**~2,000**", "**~50**"]
+
+  - type: bullets
+    title: "Real-World & Downstream Results"
+    points:
+      - "**100% success** across 50 diverse sim-to-real test trajectories on Unitree G1 (dance, jumps, loco-manipulation)"
+      - "**VR teleoperation** (3-point: head + 2 wrists): mean wrist error 6 cm, orientation error 8.3°, latency 121.9 ms"
+      - "**GR00T N1.5 integration** (apple-to-plate pick-and-place): **95% success** over 20 trials after fine-tuning on 300 VR demos"
+      - "**Interactive navigation**: 0–6 m/s, 360°, style variants (drunken, injured, happy, stealth)"
+      - "**Locomotive skills**: squat 0.3–0.8 m height, omnidirectional crawling"
+
+  - type: two_column
+    title: "What the Ablations Show"
+    left_title: "Scaling dimension isolation"
+    left_points:
+      - "Dataset size = **largest marginal effect**"
+      - "Model size = consistent secondary gain"
+      - "Compute = further enhancement"
+      - "All three are additive and orthogonal"
+    right_title: "Loss term necessity"
+    right_points:
+      - "**L_token** — crucial for cross-embodiment learning"
+      - "**L_cycle** — reinforces latent alignment consistency"
+      - "Spring model is robust — coefficients barely matter"
+      - "Without L_token + L_cycle, human→robot transfer breaks"
+
+  - type: section
+    label: "Takeaways"
+    title: "Limitations & Why It Matters"
+
+  - type: bullets
+    title: "Limitations"
+    points:
+      - "**Safety & compliance** — no formal treatment for extended real-world deployments"
+      - "**Sensor noise** — noisy real-world inputs during deployment are unaddressed"
+      - "**Task generalization** — 95% VLA success is proof-of-concept; richer task distributions are future work"
+      - "**Joint training** — planner, tokenizer, and control policy are trained separately; gaps remain"
+
+  - type: bullets
+    title: "Why SONIC Matters"
+    points:
+      - "**First scaling law for humanoid control** — data, model size, and compute all consistently improve performance"
+      - "**Universal token space** — single policy, six interfaces, no per-modality training"
+      - "**L_token + L_cycle** — zero-shot human-to-robot transfer without explicit retargeting"
+      - "**100% sim-to-real** — demonstrates the gap is manageable at this data scale"
+      - "**Blueprint for foundation models** — same playbook as LLMs/vision applied to full-body robot control"
+    highlight: "\"SONIC provides a credible blueprint for general-purpose humanoid foundation models using the same scaling playbook that worked for language and vision.\""
+
+  - type: title
+    title: "Thank You"
+    subtitle: "Questions?"
+    meta: "SONIC · Luo, Yuan et al. · NVIDIA · arXiv 2511.07820"

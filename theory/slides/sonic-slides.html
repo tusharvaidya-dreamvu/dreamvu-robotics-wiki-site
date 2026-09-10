@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SONIC: Supersizing Motion Tracking for Natural Humanoid Whole-Body Control</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --border: #2a2a4a;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --highlight-bg: #1e1b4b;
+  --highlight-border: #7c3aed;
+  --green: #22c55e;
+  --red: #ef4444;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+/* ── Slide container ── */
+#deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(40px);
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev { transform: translateX(-40px); }
+
+.slide-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 56px 72px 48px;
+  overflow: hidden;
+}
+.slide-inner.centered { align-items: center; justify-content: center; text-align: center; }
+
+/* ── Progress ── */
+.progress-bar { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+.slide-counter {
+  position: absolute; bottom: 18px; right: 28px;
+  font-size: 13px; color: var(--text-muted); letter-spacing: 0.05em;
+}
+
+/* ── Nav buttons ── */
+#nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; }
+.nav-btn {
+  padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+#slide-num { padding: 10px 16px; color: var(--text-muted); font-size: 14px; align-self: center; }
+
+/* ── Title slide ── */
+.slide-title { background: radial-gradient(ellipse at 60% 40%, #1e1040 0%, var(--bg) 70%); }
+.title-badge {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  background: rgba(124,58,237,0.2); border: 1px solid var(--accent);
+  font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.title-main { font-size: clamp(32px, 5vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
+.title-sub { font-size: clamp(16px, 2vw, 22px); color: var(--text-muted); margin-bottom: 24px; }
+.slide-meta { font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ── Section slide ── */
+.slide-section { background: linear-gradient(135deg, #1a0a40 0%, var(--bg) 100%); }
+.section-label {
+  font-size: 13px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+.section-title { font-size: clamp(28px, 4vw, 52px); font-weight: 700; }
+
+/* ── Common slide heading ── */
+.slide-title { font-size: clamp(20px, 2.5vw, 32px); font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.slide-intro { font-size: 16px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+/* ── Bullets ── */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.bullet-list li {
+  padding: 12px 16px 12px 44px; position: relative;
+  background: var(--surface); border-radius: 8px; border: 1px solid var(--border);
+  font-size: clamp(13px, 1.4vw, 16px); line-height: 1.55; color: var(--text);
+}
+.bullet-list li::before {
+  content: "→"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-weight: 700;
+}
+.bullet-list li strong { color: var(--accent2); }
+.bullet-list li code { background: rgba(124,58,237,0.2); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; }
+
+/* ── Highlight box ── */
+.highlight-box {
+  margin-top: 16px; padding: 14px 18px;
+  background: var(--highlight-bg); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; font-size: clamp(13px, 1.3vw, 15px);
+  color: #c4b5fd; line-height: 1.6;
+}
+
+/* ── Stats ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 20px; text-align: center;
+}
+.stat-value { font-size: clamp(24px, 3vw, 40px); font-weight: 800; color: var(--accent2); margin-bottom: 8px; }
+.stat-label { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Two column ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.col-title {
+  font-size: 15px; font-weight: 600; color: var(--accent2);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+}
+
+/* ── Table ── */
+.table-note { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(12px, 1.2vw, 14px); }
+thead tr { background: var(--accent); }
+thead th { padding: 10px 14px; text-align: left; font-weight: 600; color: white; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 9px 14px; color: var(--text-muted); }
+tbody td strong { color: var(--accent2); font-weight: 600; }
+tbody tr:last-child td { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<div class="slide slide-title" data-index="0">
+  <div class="slide-inner centered">
+    <div class="title-badge">Paper Review</div>
+    <h1 class="title-main">SONIC</h1>
+    <p class="title-sub">Supersizing Motion Tracking for Natural Humanoid Whole-Body Control</p>
+    <div class="slide-meta">Luo*, Yuan*, Wang*, Li* et al. · NVIDIA · arXiv 2511.07820</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:4.8%"></div></div><div class="slide-counter">1 / 21</div>
+</div>
+
+<div class="slide slide-section" data-index="1">
+  <div class="slide-inner centered">
+    <div class="section-label">Motivation</div>
+    <h2 class="section-title">The Scaling Gap in Humanoid Control</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:9.5%"></div></div><div class="slide-counter">2 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="2">
+  <div class="slide-inner">
+    <h2 class="slide-title">Scaling Laws Everywhere — Except Robotics</h2>
+    <p class="slide-intro">LLMs and vision models scale predictably. Humanoid control does not — until now.</p>
+    <ul class="bullet-list"><li>Prior neural controllers: <strong>a few million parameters</strong>, trained on a handful of GPUs</li><li>Every new skill needs <strong>bespoke reward engineering</strong> — locomotion ≠ dancing ≠ manipulation</li><li>Motion tracking results shown mostly on <strong>training data</strong> — no downstream task demos</li><li>No system unified teleoperation, video, text, and music in <strong>a single policy</strong></li></ul>
+    <div class="highlight-box">Core thesis: motion-capture-supervised tracking is the scalable foundational task for humanoid control — analogous to next-token prediction for LLMs.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:14.3%"></div></div><div class="slide-counter">3 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="3">
+  <div class="slide-inner">
+    <h2 class="slide-title">SONIC: One Policy, Six Interfaces</h2>
+    <p class="slide-intro">A single trained policy accepts all of these simultaneously — no separate training stages.</p>
+    <ul class="bullet-list"><li>:joystick: <strong>Gamepad / Joystick</strong> — interactive navigation with style</li><li>:vr: <strong>VR headset + controllers</strong> — full-body teleoperation</li><li>:video: <strong>Video</strong> — zero-shot motion imitation from camera</li><li>:text: <strong>Text</strong> — language-commanded motion styles</li><li>:musical_note: <strong>Music</strong> — audio-synchronized dancing</li><li>:robot: <strong>VLA model</strong> (GR00T N1.5) — loco-manipulation from vision-language commands</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:19.0%"></div></div><div class="slide-counter">4 / 21</div>
+</div>
+
+<div class="slide slide-section" data-index="4">
+  <div class="slide-inner centered">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">Universal Control Policy</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:23.8%"></div></div><div class="slide-counter">5 / 21</div>
+</div>
+
+<div class="slide slide-two-col" data-index="5">
+  <div class="slide-inner">
+    <h2 class="slide-title">Three Encoders → One Token Space</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Inputs (pick one or more)</h3><ul class="bullet-list"><li><strong>Robot motion</strong> E_r: joint positions/velocities, F_r future frames</li><li><strong>Human SMPL</strong> E_h: 3D joint positions, F_h future frames</li><li><strong>Hybrid</strong> E_m: sparse head + wrist keypoints + lower-body robot motion</li></ul></div>
+      <div class="col"><h3 class="col-title">Shared Latent (FSQ)</h3><ul class="bullet-list"><li>All encoders map to the <strong>same latent space</strong></li><li>Finite Scalar Quantization → universal token z</li><li>Robot control decoder → motor commands</li><li>Robot motion decoder → reconstructed motion (auxiliary)</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:28.6%"></div></div><div class="slide-counter">6 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="6">
+  <div class="slide-inner">
+    <h2 class="slide-title">The 4-Term Training Loss</h2>
+    <p class="slide-intro">All four losses are needed — L_token and L_cycle are called out as critical.</p>
+    <ul class="bullet-list"><li><strong>L_PPO</strong> — standard RL loss (PPO) for motor control</li><li><strong>L_recon</strong> — reconstruction across all modalities; acts as cross-embodiment retargeting when input is human SMPL</li><li><strong>L_token</strong> = ||z_r − z_h||² — forces robot & human motion into the <strong>same token space</strong></li><li><strong>L_cycle</strong> = ||E_r(D_r(z_h)) − z_r||² — cycle consistency; reinforces cross-embodiment alignment</li></ul>
+    <div class="highlight-box">L_token + L_cycle enable zero-shot human → robot transfer without any explicit retargeting at test time.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:33.3%"></div></div><div class="slide-counter">7 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="7">
+  <div class="slide-inner">
+    <h2 class="slide-title">Real-Time Kinematic Motion Planner</h2>
+    <p class="slide-intro">Sits above the tracking policy. Generates motion tokens in real-time from user intent.</p>
+    <ul class="bullet-list"><li><strong>Masked Token Prediction</strong> — iteratively fills motion sequence with highest-confidence tokens first (cosine masking schedule)</li><li><strong>Spring-based root trajectory</strong> — critically damped spring converts gamepad input to smooth pelvis x/y + heading</li><li><strong>Temporal downsampling</strong> — 4× compression via learned tokenizer keeps sequence short</li><li><strong>Speed:</strong> <5 ms on laptop · 12 ms on Jetson Orin — fully onboard-deployable</li><li>Replanning every <strong>100 ms</strong> or on command update</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:38.1%"></div></div><div class="slide-counter">8 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="8">
+  <div class="slide-inner">
+    <h2 class="slide-title">GENMO: Multi-Modal Motion Generation</h2>
+    <p class="slide-intro">A separate module that conditions the motion planner on text, video, or audio.</p>
+    <ul class="bullet-list"><li>Temporal transformer with <strong>cross-attention</strong> from motion tokens to multi-modal condition tokens</li><li><strong>Diffusion-based</strong> motion prior for generation</li><li>Inference modes: pure generation (text/audio), constrained (video), hybrid switching</li><li>Integrates with SONIC via <strong>sliding window + diffusion inpainting</strong> for low-latency transitions</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:42.9%"></div></div><div class="slide-counter">9 / 21</div>
+</div>
+
+<div class="slide slide-section" data-index="9">
+  <div class="slide-inner centered">
+    <div class="section-label">Data & Scale</div>
+    <h2 class="section-title">700 Hours. 128 GPUs. 3 Days.</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:47.6%"></div></div><div class="slide-counter">10 / 21</div>
+</div>
+
+<div class="slide slide-stats" data-index="10">
+  <div class="slide-inner">
+    <h2 class="slide-title">Dataset & Training Scale</h2>
+    <div class="stat-grid"><div class="stat-card"><div class="stat-value">700 hrs</div><div class="stat-label">in-house MoCap — 100M+ frames @ 50 Hz</div></div><div class="stat-card"><div class="stat-value">170</div><div class="stat-label">subjects, heights 145–199 cm</div></div><div class="stat-card"><div class="stat-value">128 GPUs</div><div class="stat-label">3 days = ~32,000 GPU hours</div></div><div class="stat-card"><div class="stat-value">42M</div><div class="stat-label">parameters (largest model variant)</div></div><div class="stat-card"><div class="stat-value">1,602</div><div class="stat-label">unseen AMASS test trajectories</div></div><div class="stat-card"><div class="stat-value">100%</div><div class="stat-label">sim-to-real success on Unitree G1</div></div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:52.4%"></div></div><div class="slide-counter">11 / 21</div>
+</div>
+
+<div class="slide slide-two-col" data-index="11">
+  <div class="slide-inner">
+    <h2 class="slide-title">Scaling Laws: Three Independent Axes</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">What Was Scaled</h3><ul class="bullet-list"><li><strong>Dataset size:</strong> 0.4M (LaFAN) → 7.4M → 100M frames</li><li><strong>Model size:</strong> 1.2M → 42M parameters</li><li><strong>Compute:</strong> 8 → 32 → 128 GPUs</li></ul></div>
+      <div class="col"><h3 class="col-title">What Improved</h3><ul class="bullet-list"><li>All three axes show consistent, monotonic MPJPE improvement</li><li>Dataset size has the <strong>steepest marginal gain</strong></li><li>128 GPUs needed for convergence at full data scale</li><li>First empirical scaling law demonstrated for humanoid motor control</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:57.1%"></div></div><div class="slide-counter">12 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="12">
+  <div class="slide-inner">
+    <h2 class="slide-title">Adaptive Motion Sampling</h2>
+    <p class="slide-intro">Prevents the policy from collapsing to easy data during training.</p>
+    <ul class="bullet-list"><li>Motions binned by difficulty; <strong>high-failure bins sampled more</strong> often</li><li>Sampling rate capped at β × average failure rate to avoid overcorrection</li><li>Blended with uniform distribution — automatic curriculum without manual scheduling</li><li>Retargeting: human SMPL → robot via <strong>GMR and PyRoki</strong> toolchains</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:61.9%"></div></div><div class="slide-counter">13 / 21</div>
+</div>
+
+<div class="slide slide-section" data-index="13">
+  <div class="slide-inner centered">
+    <div class="section-label">Results</div>
+    <h2 class="section-title">Benchmarks & Real World</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:66.7%"></div></div><div class="slide-counter">14 / 21</div>
+</div>
+
+<div class="slide slide-table" data-index="14">
+  <div class="slide-inner">
+    <h2 class="slide-title">Zero-Shot AMASS Benchmark (Unseen 9 hrs, 1,602 trajectories)</h2>
+    <p class="table-note">MuJoCo evaluation. MPJPE, Eacc, Evel lower is better. Success rate higher is better.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Method</th><th>Train Data</th><th>Success ↑</th><th>MPJPE ↓ (mm)</th><th>Eacc ↓</th><th>Evel ↓</th></tr></thead><tbody><tr><td>Any2Track</td><td>LaFAN 0.4M</td><td>~75%</td><td>~80</td><td>~4,000</td><td>~90</td></tr><tr><td>BeyondMimic</td><td>LaFAN 0.4M</td><td>~70%</td><td>~95</td><td>~4,500</td><td>~105</td></tr><tr><td>GMT</td><td>AMASS</td><td>~80%</td><td>~70</td><td>~3,500</td><td>~75</td></tr><tr><td><strong>SONIC (ours)</strong></td><td><strong>In-house 100M</strong></td><td><strong>~95%</strong></td><td><strong>~40</strong></td><td><strong>~2,000</strong></td><td><strong>~50</strong></td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:71.4%"></div></div><div class="slide-counter">15 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="15">
+  <div class="slide-inner">
+    <h2 class="slide-title">Real-World & Downstream Results</h2>
+    
+    <ul class="bullet-list"><li><strong>100% success</strong> across 50 diverse sim-to-real test trajectories on Unitree G1 (dance, jumps, loco-manipulation)</li><li><strong>VR teleoperation</strong> (3-point: head + 2 wrists): mean wrist error 6 cm, orientation error 8.3°, latency 121.9 ms</li><li><strong>GR00T N1.5 integration</strong> (apple-to-plate pick-and-place): <strong>95% success</strong> over 20 trials after fine-tuning on 300 VR demos</li><li><strong>Interactive navigation</strong>: 0–6 m/s, 360°, style variants (drunken, injured, happy, stealth)</li><li><strong>Locomotive skills</strong>: squat 0.3–0.8 m height, omnidirectional crawling</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:76.2%"></div></div><div class="slide-counter">16 / 21</div>
+</div>
+
+<div class="slide slide-two-col" data-index="16">
+  <div class="slide-inner">
+    <h2 class="slide-title">What the Ablations Show</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Scaling dimension isolation</h3><ul class="bullet-list"><li>Dataset size = <strong>largest marginal effect</strong></li><li>Model size = consistent secondary gain</li><li>Compute = further enhancement</li><li>All three are additive and orthogonal</li></ul></div>
+      <div class="col"><h3 class="col-title">Loss term necessity</h3><ul class="bullet-list"><li><strong>L_token</strong> — crucial for cross-embodiment learning</li><li><strong>L_cycle</strong> — reinforces latent alignment consistency</li><li>Spring model is robust — coefficients barely matter</li><li>Without L_token + L_cycle, human→robot transfer breaks</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:81.0%"></div></div><div class="slide-counter">17 / 21</div>
+</div>
+
+<div class="slide slide-section" data-index="17">
+  <div class="slide-inner centered">
+    <div class="section-label">Takeaways</div>
+    <h2 class="section-title">Limitations & Why It Matters</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:85.7%"></div></div><div class="slide-counter">18 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="18">
+  <div class="slide-inner">
+    <h2 class="slide-title">Limitations</h2>
+    
+    <ul class="bullet-list"><li><strong>Safety & compliance</strong> — no formal treatment for extended real-world deployments</li><li><strong>Sensor noise</strong> — noisy real-world inputs during deployment are unaddressed</li><li><strong>Task generalization</strong> — 95% VLA success is proof-of-concept; richer task distributions are future work</li><li><strong>Joint training</strong> — planner, tokenizer, and control policy are trained separately; gaps remain</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:90.5%"></div></div><div class="slide-counter">19 / 21</div>
+</div>
+
+<div class="slide slide-bullets" data-index="19">
+  <div class="slide-inner">
+    <h2 class="slide-title">Why SONIC Matters</h2>
+    
+    <ul class="bullet-list"><li><strong>First scaling law for humanoid control</strong> — data, model size, and compute all consistently improve performance</li><li><strong>Universal token space</strong> — single policy, six interfaces, no per-modality training</li><li><strong>L_token + L_cycle</strong> — zero-shot human-to-robot transfer without explicit retargeting</li><li><strong>100% sim-to-real</strong> — demonstrates the gap is manageable at this data scale</li><li><strong>Blueprint for foundation models</strong> — same playbook as LLMs/vision applied to full-body robot control</li></ul>
+    <div class="highlight-box">"SONIC provides a credible blueprint for general-purpose humanoid foundation models using the same scaling playbook that worked for language and vision."</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:95.2%"></div></div><div class="slide-counter">20 / 21</div>
+</div>
+
+<div class="slide slide-title" data-index="20">
+  <div class="slide-inner centered">
+    <div class="title-badge">Paper Review</div>
+    <h1 class="title-main">Thank You</h1>
+    <p class="title-sub">Questions?</p>
+    <div class="slide-meta">SONIC · Luo, Yuan et al. · NVIDIA · arXiv 2511.07820</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100.0%"></div></div><div class="slide-counter">21 / 21</div>
+</div>
+</div>
+<div id="nav">
+  <button class="nav-btn" id="btn-prev">← Prev</button>
+  <span id="slide-num">1 / 21</span>
+  <button class="nav-btn" id="btn-next">Next →</button>
+</div>
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+document.getElementById('btn-prev').onclick = () => go(cur - 1);
+document.getElementById('btn-next').onclick = () => go(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// Touch / swipe
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+});
+
+go(0);
+</script>
+</body>
+</html>

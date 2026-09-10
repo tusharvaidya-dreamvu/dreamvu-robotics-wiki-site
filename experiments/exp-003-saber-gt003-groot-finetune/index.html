@@ -1,0 +1,2443 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Experiment tracking, research, and architecture for DreamVu">
+      
+      
+      
+        <link rel="canonical" href="https://tusharvaidya-dreamvu.github.io/dreamvu-robotics-wiki-site/experiments/exp-003-saber-gt003-groot-finetune/">
+      
+      
+        <link rel="prev" href="../exp-002-mediapipe-hand-retargeting/">
+      
+      
+        <link rel="next" href="../exp-005-multicam-gaussian-splatting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>EXP-003: SABER GT003 → GR00T N1.7 - DreamVu Project Wiki</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exp-003-saber-gt003-gr00t-n17-fine-tuning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DreamVu Project Wiki" class="md-header__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DreamVu Project Wiki
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              EXP-003: SABER GT003 → GR00T N1.7
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Experiments
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../theory/" class="md-tabs__link">
+          
+  
+  
+  Theory & Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decisions/" class="md-tabs__link">
+          
+  
+  
+  Decision Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../presentations/" class="md-tabs__link">
+          
+  
+  
+  Presentations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tags/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tags
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DreamVu Project Wiki" class="md-nav__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DreamVu Project Wiki
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-001-groot-n16-isaac-robobench/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-001: GR00T N1.6 Isaac Robobench
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-002-mediapipe-hand-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-002: MediaPipe → Unitree G1
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-003: SABER GT003 → GR00T N1.7
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-003: SABER GT003 → GR00T N1.7
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model &amp; Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-pipeline-saber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Pipeline — SABER
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-action-layout-132d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State / Action Layout (132D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataset-cleaning-one-time-pre-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset Cleaning (One-Time, Pre-Training)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bugs-encountered-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bugs Encountered &amp; Fixed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bugs Encountered &amp; Fixed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-1-modulenotfounderror-no-module-named-tyro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 1 — ModuleNotFoundError: No module named 'tyro'
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-2-assertionerror-original-key-observationimagesego_view-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 2 — AssertionError: Original key observation.images.ego_view not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-3-106-corrupt-episodes-crash-the-dataloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 3 — 106 corrupt episodes crash the DataLoader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-4-runtimeerror-module-parameters-on-device-cpu-multi-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 4 — RuntimeError: module parameters on device cpu (multi-GPU)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-5-nccl-rank-to-gpu-mapping-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 5 — NCCL rank-to-GPU mapping warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-6-nccl-illegal-memory-access-p2p-over-pcie" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 6 — NCCL illegal memory access (P2P over PCIe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-005-multicam-gaussian-splatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-005: Multi-Cam Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-006-splat-blender-usd-scene/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-006: Splat → Blender → USD Scene
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template (copy me)
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory & Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory & Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decision Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Presentations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Presentations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting — RL Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/groot-n1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GR00T N1 — Architecture & N1.6 vs N1.7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model &amp; Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-pipeline-saber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Pipeline — SABER
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#state-action-layout-132d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State / Action Layout (132D)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataset-cleaning-one-time-pre-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset Cleaning (One-Time, Pre-Training)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bugs-encountered-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bugs Encountered &amp; Fixed
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Bugs Encountered &amp; Fixed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-1-modulenotfounderror-no-module-named-tyro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 1 — ModuleNotFoundError: No module named 'tyro'
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-2-assertionerror-original-key-observationimagesego_view-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 2 — AssertionError: Original key observation.images.ego_view not found
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-3-106-corrupt-episodes-crash-the-dataloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 3 — 106 corrupt episodes crash the DataLoader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-4-runtimeerror-module-parameters-on-device-cpu-multi-gpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 4 — RuntimeError: module parameters on device cpu (multi-GPU)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-5-nccl-rank-to-gpu-mapping-warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 5 — NCCL rank-to-GPU mapping warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-6-nccl-illegal-memory-access-p2p-over-pcie" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug 6 — NCCL illegal memory access (P2P over PCIe)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">blackwell</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">data-pipeline</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">experiment</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">finetuning</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">groot</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">gt003</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">retargeting</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">saber</span>
+      
+    
+  </nav>
+
+
+  
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/edit/main/docs/experiments/exp-003-saber-gt003-groot-finetune.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/raw/main/docs/experiments/exp-003-saber-gt003-groot-finetune.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="exp-003-saber-gt003-gr00t-n17-fine-tuning">EXP-003: SABER GT003 → GR00T N1.7 Fine-tuning<a class="headerlink" href="#exp-003-saber-gt003-gr00t-n17-fine-tuning" title="Permanent link">&para;</a></h1>
+<p><strong>Owner:</strong> Tushar Vaidya<br />
+<strong>Start Date:</strong> 2026-06-09<br />
+<strong>Last Updated:</strong> 2026-06-09<br />
+<strong>Status:</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 2.03v2.02c4.39.54 7.5 4.53 6.96 8.92-.46 3.64-3.32 6.53-6.96 6.96v2c5.5-.55 9.5-5.43 8.95-10.93-.45-4.75-4.22-8.5-8.95-8.97m-2 .03c-1.95.19-3.81.94-5.33 2.2L7.1 5.74c1.12-.9 2.47-1.48 3.9-1.68zM4.26 5.67A9.9 9.9 0 0 0 2.05 11h2c.19-1.42.75-2.77 1.64-3.9zM2.06 13c.2 1.96.97 3.81 2.21 5.33l1.42-1.43A8 8 0 0 1 4.06 13zm5.04 5.37-1.43 1.37A10 10 0 0 0 11 22v-2a8 8 0 0 1-3.9-1.63M12.5 7v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg></span> Active</p>
+<hr />
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Fine-tune NVIDIA GR00T N1.7-3B on the DreamVu <strong>GT003 dataset</strong> — a proprietary retail
+hand-motion dataset captured via the SABER pipeline (MediaPipe Hands + HaMeR/HAWOR).
+Establish whether GR00T N1.7 can learn retail-specific hand-object interaction from
+ego-view video + tracked joint positions, and produce a deployable checkpoint for
+Unitree G1 manipulation tasks.</p>
+<hr />
+<h2 id="hypothesis">Hypothesis<a class="headerlink" href="#hypothesis" title="Permanent link">&para;</a></h2>
+<p>GR00T N1.7's diffusion action head, when fine-tuned on GT003's 26,320 retail episodes
+(~7.15 M training windows), should learn to predict 16-step absolute joint-position
+chunks from ego-view frames + task text. A 132D action space (27 hand landmarks ×
+3 axes, minus <code>right_hand_pose</code>) fits within the pretrained model's <code>max_action_dim=132</code>
+without any architecture changes.</p>
+<hr />
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Server</strong></td>
+<td><code>blackwell-6000-4x</code> (34.174.209.221)</td>
+</tr>
+<tr>
+<td><strong>GPUs</strong></td>
+<td>4× NVIDIA RTX PRO 6000 Blackwell Server Edition</td>
+</tr>
+<tr>
+<td><strong>VRAM per GPU</strong></td>
+<td>96 GB</td>
+</tr>
+<tr>
+<td><strong>Interconnect</strong></td>
+<td>PCIe only (no NVLink) — see <a href="#bug-6--nccl-illegal-memory-access-p2p-over-pcie">NCCL fix below</a></td>
+</tr>
+<tr>
+<td><strong>Topology</strong></td>
+<td>GPU0↔GPU1: PIX · GPU2↔GPU3: PIX · GPU0/1↔GPU2/3: NODE (NUMA)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="model-dataset">Model &amp; Dataset<a class="headerlink" href="#model-dataset" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Base model</strong></td>
+<td><code>nvidia/GR00T-N1.7-3B</code></td>
+</tr>
+<tr>
+<td><strong>Embodiment tag</strong></td>
+<td><code>NEW_EMBODIMENT</code></td>
+</tr>
+<tr>
+<td><strong>Dataset name</strong></td>
+<td>GT003 (<code>lerobot/gt-003/gt-003-test9</code> in IBM COS bucket <code>b</code>)</td>
+</tr>
+<tr>
+<td><strong>Episodes (clean)</strong></td>
+<td>26,320</td>
+</tr>
+<tr>
+<td><strong>Total frames</strong></td>
+<td>7,578,180</td>
+</tr>
+<tr>
+<td><strong>Mean episode length</strong></td>
+<td>287.9 frames (9.6 s @ 29.97 fps)</td>
+</tr>
+<tr>
+<td><strong>Action dimensions</strong></td>
+<td>132 (138D raw → 6D <code>right_hand_pose</code> dropped)</td>
+</tr>
+<tr>
+<td><strong>Cameras</strong></td>
+<td>1 (ego-view, head-mounted, 640×360 H.264)</td>
+</tr>
+<tr>
+<td><strong>Disk</strong></td>
+<td>~50 GB (~47 GB video + 3.4 GB parquet + 15 MB meta)</td>
+</tr>
+<tr>
+<td><strong>Task descriptions</strong></td>
+<td>~26,426 unique (one per episode, natural language)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="data-pipeline-saber">Data Pipeline — SABER<a class="headerlink" href="#data-pipeline-saber" title="Permanent link">&para;</a></h2>
+<p>GT003 is collected via the <strong>SABER pipeline</strong>:</p>
+<div class="highlight"><pre><span></span><code>Retail video (ego-view + third-person)
+        ↓
+MediaPipe Hands — 21 landmarks per hand (world-space metres, 30 Hz)
+        ↓
+HaMeR / HAWOR  — dense hand mesh + wrist 6-DoF (fills MediaPipe's wrist orientation gap)
+        ↓
+LeRobot v2 parquet (138D state / action arrays) + H.264 video
+        ↓
+GT003 dataset (IBM COS → local /data/gt003-groot)
+</code></pre></div>
+<p>See <a href="../exp-002-mediapipe-hand-retargeting/">EXP-002</a> for the MediaPipe → Unitree G1 pipeline
+and <a href="../../theory/motion-retargeting/">Motion Retargeting theory</a> for the full retargeting
+framework.</p>
+<hr />
+<h2 id="training-configuration">Training Configuration<a class="headerlink" href="#training-configuration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Steps</strong></td>
+<td>20,000</td>
+</tr>
+<tr>
+<td><strong>Global batch size</strong></td>
+<td>64 (4 GPUs × 16 samples/GPU)</td>
+</tr>
+<tr>
+<td><strong>DataLoader workers</strong></td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>Training strategy</strong></td>
+<td>torchrun DDP (<code>--use-ddp</code>, no DeepSpeed)</td>
+</tr>
+<tr>
+<td><strong>Action representation</strong></td>
+<td><code>ABSOLUTE</code> / <code>NON_EEF</code> — action = next-frame joint positions</td>
+</tr>
+<tr>
+<td><strong>Action chunk size</strong></td>
+<td>16 frames (~0.5 s)</td>
+</tr>
+<tr>
+<td><strong>W&amp;B project</strong></td>
+<td><code>gt003-groot</code> / run: <code>gt003-full-finetune</code></td>
+</tr>
+<tr>
+<td><strong>Modality config</strong></td>
+<td><code>examples/gt003/gt003_config.py</code></td>
+</tr>
+<tr>
+<td><strong>Output dir</strong></td>
+<td><code>/checkpoints/gt003-finetune</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="state-action-layout-132d">State / Action Layout (132D)<a class="headerlink" href="#state-action-layout-132d" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Dims</th>
+<th>Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>left_hand_pose</code> (3D pos + 3D rot)</td>
+<td>6</td>
+<td>0–5</td>
+</tr>
+<tr>
+<td>~~<code>right_hand_pose</code>~~ (dropped)</td>
+<td>~~6~~</td>
+<td>~~6–11~~</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_wrist</code></td>
+<td>3</td>
+<td>12–14</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_thumb</code></td>
+<td>12</td>
+<td>15–26</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_index_finger</code></td>
+<td>12</td>
+<td>27–38</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_middle_finger</code></td>
+<td>12</td>
+<td>39–50</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_ring_finger</code></td>
+<td>12</td>
+<td>51–62</td>
+</tr>
+<tr>
+<td><code>left_hand_joints_pinky_finger</code></td>
+<td>12</td>
+<td>63–74</td>
+</tr>
+<tr>
+<td><code>right_hand_joints_*</code> (5 fingers + wrist)</td>
+<td>63</td>
+<td>75–137</td>
+</tr>
+</tbody>
+</table>
+<p><code>right_hand_pose</code> (dims 6–11) is dropped so total = 132D = <code>GR00T-N1.7-3B</code>'s
+<code>max_action_dim</code>. No architecture change needed.</p>
+<hr />
+<h2 id="docker-setup">Docker Setup<a class="headerlink" href="#docker-setup" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Build base image first</span>
+docker<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>docker/Dockerfile<span class="w"> </span>-t<span class="w"> </span>gr00t<span class="w"> </span>.
+
+<span class="c1"># Build SABER fine-tuning image</span>
+docker<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>docker/Dockerfile.saber<span class="w"> </span>-t<span class="w"> </span>gr00t-saber<span class="w"> </span>.
+
+<span class="c1"># Launch fine-tuning (4 GPUs, DDP via torchrun)</span>
+docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>saber-finetune
+
+<span class="c1"># Interactive shell with dreamvu CLI</span>
+docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>saber
+</code></pre></div>
+<p>Key environment variables (all overridable via <code>-e</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="nv">DATASET_PATH</span><span class="o">=</span>/data/gt003-groot
+<span class="nv">BASE_MODEL_PATH</span><span class="o">=</span>nvidia/GR00T-N1.7-3B
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span>/checkpoints/gt003-finetune
+<span class="nv">MAX_STEPS</span><span class="o">=</span><span class="m">20000</span>
+<span class="nv">GLOBAL_BATCH_SIZE</span><span class="o">=</span><span class="m">64</span>
+<span class="nv">NUM_GPUS</span><span class="o">=</span><span class="m">4</span>
+<span class="nv">NCCL_P2P_DISABLE</span><span class="o">=</span><span class="m">1</span><span class="w">      </span><span class="c1"># required on PCIe-only Blackwell (see Bug 6)</span>
+<span class="nv">NCCL_SHM_DISABLE</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<p>The <code>dreamvu</code> CLI is available inside the container for dataset management:</p>
+<div class="highlight"><pre><span></span><code>dreamvu<span class="w"> </span>ls<span class="w"> </span>--bucket<span class="w"> </span>b<span class="w"> </span>lerobot/gt-003/
+dreamvu<span class="w"> </span>sync<span class="w"> </span>lerobot/gt-003/gt-003-test9/<span class="w"> </span>/data/gt003-groot/<span class="w"> </span>--bucket<span class="w"> </span>b<span class="w"> </span>--jobs<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<hr />
+<h2 id="dataset-cleaning-one-time-pre-training">Dataset Cleaning (One-Time, Pre-Training)<a class="headerlink" href="#dataset-cleaning-one-time-pre-training" title="Permanent link">&para;</a></h2>
+<p><strong>106 corrupt episodes</strong> were removed before training (7 bad video codec + 99 frame
+count mismatches):</p>
+<div class="highlight"><pre><span></span><code>26,426 raw episodes → remove 106 → 26,320 clean episodes, 7,578,180 frames
+</code></pre></div>
+<p>Script: <code>docs/TROUBLESHOOTING_GT003_TRAINING.md</code> → Bug 3 section.</p>
+<p>Also required: patch <code>meta/info.json</code> to add <code>observation.images.ego_view</code>
+feature entry (Bug 2 fix) — one-time, run on host before first training start.</p>
+<hr />
+<h2 id="bugs-encountered-fixed">Bugs Encountered &amp; Fixed<a class="headerlink" href="#bugs-encountered-fixed" title="Permanent link">&para;</a></h2>
+<h3 id="bug-1-modulenotfounderror-no-module-named-tyro">Bug 1 — <code>ModuleNotFoundError: No module named 'tyro'</code><a class="headerlink" href="#bug-1-modulenotfounderror-no-module-named-tyro" title="Permanent link">&para;</a></h3>
+<p>Compose <code>.:/workspace</code> bind-mount erases the baked-in venv. Fixed in
+<code>saber_entrypoint.sh</code>: bootstraps venv into a named Docker volume (<code>saber-venv</code>)
+on first run (~3 min), cached on subsequent starts (~1 s).</p>
+<h3 id="bug-2-assertionerror-original-key-observationimagesego_view-not-found">Bug 2 — <code>AssertionError: Original key observation.images.ego_view not found</code><a class="headerlink" href="#bug-2-assertionerror-original-key-observationimagesego_view-not-found" title="Permanent link">&para;</a></h3>
+<p><code>meta/info.json</code> was missing the video feature declaration. Fixed by patching
+<code>info.json</code> on the host to add the <code>observation.images.ego_view</code> entry with
+shape, codec, fps, and channel metadata.</p>
+<h3 id="bug-3-106-corrupt-episodes-crash-the-dataloader">Bug 3 — 106 corrupt episodes crash the DataLoader<a class="headerlink" href="#bug-3-106-corrupt-episodes-crash-the-dataloader" title="Permanent link">&para;</a></h3>
+<p>Episodes with unknown codec or parquet row count &gt; video frame count. Fixed by
+scanning all episodes with <code>ffprobe</code> + pandas in parallel (32 workers, ~5 min)
+and removing corrupt files + patching <code>episodes.jsonl</code> and <code>info.json</code>.</p>
+<h3 id="bug-4-runtimeerror-module-parameters-on-device-cpu-multi-gpu">Bug 4 — <code>RuntimeError: module parameters on device cpu</code> (multi-GPU)<a class="headerlink" href="#bug-4-runtimeerror-module-parameters-on-device-cpu-multi-gpu" title="Permanent link">&para;</a></h3>
+<p>Two causes: (a) stale baked entrypoint being run instead of the workspace-mounted
+version (compose now uses <code>command: ["bash", "/workspace/docker/saber_entrypoint.sh"]</code>);
+(b) DeepSpeed ZeRO-2 conflicting with <code>torchrun</code>. Fixed by adding <code>--use-ddp</code> flag
+to bypass DeepSpeed and use native HuggingFace DDP.</p>
+<h3 id="bug-5-nccl-rank-to-gpu-mapping-warning">Bug 5 — NCCL rank-to-GPU mapping warning<a class="headerlink" href="#bug-5-nccl-rank-to-gpu-mapping-warning" title="Permanent link">&para;</a></h3>
+<p><code>init_process_group</code> called without <code>device_id</code>. Fixed by calling
+<code>torch.cuda.set_device(local_rank)</code> before <code>init_process_group</code> and passing
+<code>device_id=torch.device(f"cuda:{local_rank}")</code>.</p>
+<h3 id="bug-6-nccl-illegal-memory-access-p2p-over-pcie">Bug 6 — NCCL illegal memory access (P2P over PCIe)<a class="headerlink" href="#bug-6-nccl-illegal-memory-access-p2p-over-pcie" title="Permanent link">&para;</a></h3>
+<p><strong>Most impactful.</strong> Blackwell SM100 + NCCL direct P2P over PCIe triggers illegal
+CUDA memory access in the NCCL watchdog. All ranks abort ~9 minutes into startup.</p>
+<p>Fixed by disabling P2P and shared-memory transports:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">NCCL_P2P_DISABLE</span><span class="o">=</span><span class="m">1</span>
+<span class="nv">NCCL_SHM_DISABLE</span><span class="o">=</span><span class="m">1</span>
+<span class="nv">NCCL_SOCKET_NTHREADS</span><span class="o">=</span><span class="m">4</span>
+<span class="nv">NCCL_NSOCKS_PERTHREAD</span><span class="o">=</span><span class="m">4</span>
+<span class="nv">TORCH_NCCL_ASYNC_ERROR_HANDLING</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Blackwell PCIe-only topology</p>
+<p>This server has no NVLink. All NCCL collectives route through host RAM.
+Bandwidth is lower than NVLink but training is stable. GPU utilisation
+is unaffected during compute — only all-reduce latency increases slightly.</p>
+</div>
+<p>Full details: <a href="https://github.com/tusharvaidya-dreamvu/Isaac-GR00T/blob/main/docs/TROUBLESHOOTING_GT003_TRAINING.md"><code>docs/TROUBLESHOOTING_GT003_TRAINING.md</code></a></p>
+<hr />
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">In Progress</p>
+<p>Training started. Results to be filled in after checkpoint evaluation.</p>
+</div>
+<details class="example">
+<summary>Training metrics template</summary>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Train Loss</th>
+<th>LR</th>
+<th>GPU util</th>
+<th>Step time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,000</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>5,000</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>10,000</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>20,000</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+</details>
+<hr />
+<h2 id="lessons-learned">Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>NCCL P2P on Blackwell PCIe-only is broken</strong> — must disable <code>NCCL_P2P_DISABLE=1</code>
+  and <code>NCCL_SHM_DISABLE=1</code>. Not documented in NCCL or PyTorch docs for SM100.</li>
+<li><strong>Compose bind-mount erases baked venv</strong> — always bootstrap venv at container
+  start into a named volume, not into <code>/workspace/.venv</code> directly.</li>
+<li><strong>DeepSpeed + torchrun = conflict</strong> — use <code>--use-ddp</code> for multi-GPU on this setup.</li>
+<li><strong><code>right_hand_pose</code> must be dropped</strong> — GR00T N1.7 <code>max_action_dim=132</code>; raw
+  138D state needs slicing in <code>gt003_config.py</code> or training crashes.</li>
+<li><strong>Dataset cleaning is mandatory</strong> — 106/26,426 episodes (~0.4%) were corrupt
+  enough to crash the DataLoader. Always scan before training.</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Monitor W&amp;B for loss convergence (target: &lt; 0.05 diffusion loss by step 10k)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Save checkpoint at step 5k, 10k, 20k</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Run inference eval on held-out GT003 episodes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test retargeted checkpoint against Unitree G1 URDF in Isaac Lab (<a href="../exp-001-groot-n16-isaac-robobench/">EXP-001</a> protocol)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Document final accuracy vs baseline GR00T N1.7 zero-shot</li>
+</ul>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/tusharvaidya-dreamvu/Isaac-GR00T/blob/main/docs/GT003_TRAINING_DATA_FORMAT.md"><code>docs/GT003_TRAINING_DATA_FORMAT.md</code></a> — full dataset schema and training sample walkthrough</li>
+<li><a href="https://github.com/tusharvaidya-dreamvu/Isaac-GR00T/blob/main/docs/TROUBLESHOOTING_GT003_TRAINING.md"><code>docs/TROUBLESHOOTING_GT003_TRAINING.md</code></a> — all 6 bugs with fixes</li>
+<li><a href="https://github.com/tusharvaidya-dreamvu/Isaac-GR00T/blob/main/docker/Dockerfile.saber"><code>docker/Dockerfile.saber</code></a> — SABER fine-tuning image</li>
+<li><a href="https://github.com/tusharvaidya-dreamvu/Isaac-GR00T/blob/main/gr00t/data/cos_client.py"><code>gr00t/data/cos_client.py</code></a> — Python API for IBM COS dataset access</li>
+<li><a href="../exp-002-mediapipe-hand-retargeting/">EXP-002 — MediaPipe → Unitree G1</a> — SABER data pipeline</li>
+<li><a href="../../theory/motion-retargeting/">Motion Retargeting theory</a> — full RL framework</li>
+<li><a href="../../presentations/motion-retargeting/">Motion Retargeting slides</a> — 27-slide deck</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../exp-002-mediapipe-hand-retargeting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: EXP-002: MediaPipe → Unitree G1">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                EXP-002: MediaPipe → Unitree G1
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../exp-005-multicam-gaussian-splatting/" class="md-footer__link md-footer__link--next" aria-label="Next: EXP-005: Multi-Cam Gaussian Splatting">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                EXP-005: Multi-Cam Gaussian Splatting
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2603 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Experiment tracking, research, and architecture for DreamVu">
+      
+      
+      
+        <link rel="canonical" href="https://tusharvaidya-dreamvu.github.io/dreamvu-robotics-wiki-site/experiments/exp-005-multicam-gaussian-splatting/">
+      
+      
+        <link rel="prev" href="../exp-003-saber-gt003-groot-finetune/">
+      
+      
+        <link rel="next" href="../exp-006-splat-blender-usd-scene/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>EXP-005: Multi-Cam Gaussian Splatting - DreamVu Project Wiki</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exp-005-multi-camera-rig-3d-gaussian-splatting-alia16k-capture2" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DreamVu Project Wiki" class="md-header__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DreamVu Project Wiki
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              EXP-005: Multi-Cam Gaussian Splatting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Experiments
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../theory/" class="md-tabs__link">
+          
+  
+  
+  Theory & Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decisions/" class="md-tabs__link">
+          
+  
+  
+  Decision Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../presentations/" class="md-tabs__link">
+          
+  
+  
+  Presentations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tags/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tags
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DreamVu Project Wiki" class="md-nav__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DreamVu Project Wiki
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-001-groot-n16-isaac-robobench/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-001: GR00T N1.6 Isaac Robobench
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-002-mediapipe-hand-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-002: MediaPipe → Unitree G1
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-003-saber-gt003-groot-finetune/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-003: SABER GT003 → GR00T N1.7
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-005: Multi-Cam Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-005: Multi-Cam Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-rig-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture &amp; Rig Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bug-found-fixed-upstream-gsplat-fisheye-undistortion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Found &amp; Fixed Upstream: gsplat Fisheye Undistortion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validating-rig-trajectory-accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Rig Trajectory Accuracy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camera-synchronization-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera Synchronization Discovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imu-cross-check-independent-evidence-of-trajectory-drift" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IMU Cross-Check: Independent Evidence of Trajectory Drift
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IMU Cross-Check: Independent Evidence of Trajectory Drift">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attempted-fix-per-frame-gravity-alignment-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attempted Fix: Per-Frame Gravity Alignment (Failed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rig-locked-retry-on-the-sync-corrected-model-also-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rig-Locked Retry on the Sync-Corrected Model: Also Failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fisheye-rectified-undistortion-factory-calibration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fisheye → rectified undistortion (factory calibration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconstruction-variants-tried" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reconstruction variants tried
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-counter-intuitive-finding-correct-geometry-sharp-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The counter-intuitive finding: correct geometry ≠ sharp render
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-camera-fallback-cam4-sidesteps-the-drift-problem-entirely" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-Camera Fallback (cam4) — Sidesteps the Drift Problem Entirely
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resolution-ablation-hd-4k-5k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Ablation (HD / 4K / 5K)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-006-splat-blender-usd-scene/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-006: Splat → Blender → USD Scene
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template (copy me)
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory & Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory & Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decision Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Presentations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Presentations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting — RL Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/groot-n1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GR00T N1 — Architecture & N1.6 vs N1.7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-rig-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture &amp; Rig Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bug-found-fixed-upstream-gsplat-fisheye-undistortion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Found &amp; Fixed Upstream: gsplat Fisheye Undistortion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validating-rig-trajectory-accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validating Rig Trajectory Accuracy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camera-synchronization-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera Synchronization Discovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imu-cross-check-independent-evidence-of-trajectory-drift" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IMU Cross-Check: Independent Evidence of Trajectory Drift
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IMU Cross-Check: Independent Evidence of Trajectory Drift">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attempted-fix-per-frame-gravity-alignment-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attempted Fix: Per-Frame Gravity Alignment (Failed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rig-locked-retry-on-the-sync-corrected-model-also-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rig-Locked Retry on the Sync-Corrected Model: Also Failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fisheye-rectified-undistortion-factory-calibration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fisheye → rectified undistortion (factory calibration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reconstruction-variants-tried" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reconstruction variants tried
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-counter-intuitive-finding-correct-geometry-sharp-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The counter-intuitive finding: correct geometry ≠ sharp render
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-camera-fallback-cam4-sidesteps-the-drift-problem-entirely" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-Camera Fallback (cam4) — Sidesteps the Drift Problem Entirely
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resolution-ablation-hd-4k-5k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Ablation (HD / 4K / 5K)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">3d-reconstruction</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">colmap</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">experiment</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">gaussian-splatting</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">imu</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">multi-camera-rig</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">single-camera</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">slam</span>
+      
+    
+  </nav>
+
+
+  
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/edit/main/docs/experiments/exp-005-multicam-gaussian-splatting.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/raw/main/docs/experiments/exp-005-multicam-gaussian-splatting.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="exp-005-multi-camera-rig-3d-gaussian-splatting-alia16k-capture2">EXP-005: Multi-Camera Rig 3D Gaussian Splatting (Alia16K Capture2)<a class="headerlink" href="#exp-005-multi-camera-rig-3d-gaussian-splatting-alia16k-capture2" title="Permanent link">&para;</a></h1>
+<p><strong>Owner:</strong> Tushar Vaidya
+<strong>Start Date:</strong> 2026-08-24
+<strong>Last Updated:</strong> 2026-09-10
+<strong>Status:</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 2.03v2.02c4.39.54 7.5 4.53 6.96 8.92-.46 3.64-3.32 6.53-6.96 6.96v2c5.5-.55 9.5-5.43 8.95-10.93-.45-4.75-4.22-8.5-8.95-8.97m-2 .03c-1.95.19-3.81.94-5.33 2.2L7.1 5.74c1.12-.9 2.47-1.48 3.9-1.68zM4.26 5.67A9.9 9.9 0 0 0 2.05 11h2c.19-1.42.75-2.77 1.64-3.9zM2.06 13c.2 1.96.97 3.81 2.21 5.33l1.42-1.43A8 8 0 0 1 4.06 13zm5.04 5.37-1.43 1.37A10 10 0 0 0 11 22v-2a8 8 0 0 1-3.9-1.63M12.5 7v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg></span> Active — rig-wide reconstruction still blocked on trajectory drift (independently confirmed via IMU); single-camera pipeline validated as a practical fallback that sidesteps the problem entirely</p>
+<hr />
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Reconstruct a photorealistic 3D Gaussian Splat of an office space (focused on two work tables) from an 8-camera GoPro fisheye rig walkthrough, and — the harder question — determine whether COLMAP's recovered camera trajectory is actually <strong>accurate</strong>, using the rig's known physical geometry as ground truth, rather than trusting self-calibration blindly.</p>
+<hr />
+<h2 id="hypothesis">Hypothesis<a class="headerlink" href="#hypothesis" title="Permanent link">&para;</a></h2>
+<ol>
+<li>COLMAP's default self-calibrated bundle adjustment, run naively across an 8-camera rig, will drift from the rig's true physical geometry, especially for camera pairs with weak visual overlap.</li>
+<li>Locking the reconstruction to the rig's factory-measured extrinsics (<code>rig_bundle_adjuster</code>) will produce a <em>provably</em> accurate trajectory.</li>
+<li>An accurate trajectory should, other things equal, produce a <em>sharper</em> Gaussian Splat than an inaccurate one.</li>
+</ol>
+<p>(3) turned out to be false in an interesting way — see <a href="#results">Results</a>.</p>
+<hr />
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>8× GoPro fisheye video (independently triggered, no genlock)
+        ↓
+Strategic frame extraction (dense at both tables, sparse in transit)
+        ↓
+COLMAP feature extraction + rig-aware explicit match list
+        ↓
+COLMAP mapper (self-calibrated OPENCV_FISHEYE, per-camera intrinsics)
+        ↓
+rig_bundle_adjuster (lock relative rig geometry to factory calibration)
+        ↓
+gsplat (nerfstudio) — on-the-fly fisheye undistortion, 3D Gaussian training
+        ↓
+viser web viewer + Cloudflare Quick Tunnel
+</code></pre></div>
+<p>Rig: 4 arms, 8 cameras, ~129° FOV each, 4 known near-zero-baseline stereo pairs (cam1↔6, cam2↔5, cam3↔8, cam4↔7). Factory calibration (intrinsics + az/el extrinsics) available from the manufacturing snapshot, independent of anything COLMAP estimates.</p>
+<hr />
+<h2 id="capture-rig-configuration">Capture &amp; Rig Configuration<a class="headerlink" href="#capture-rig-configuration" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rig</strong></td>
+<td>Alia16K, 8× GoPro, ~129° FOV per camera</td>
+</tr>
+<tr>
+<td><strong>Capture</strong></td>
+<td><code>alia16k/2026_08_24/capture2</code>, session2, ~4.5 min per camera</td>
+</tr>
+<tr>
+<td><strong>Native resolution</strong></td>
+<td>5312×4648 (HEVC)</td>
+</tr>
+<tr>
+<td><strong>Working resolution</strong></td>
+<td>1920×1680 (extracted frames)</td>
+</tr>
+<tr>
+<td><strong>Frame schedule</strong></td>
+<td>Dense (2s step) at table 1 [45–155s] and table 2 [207–265s], sparse (4s step) in transit [159–203s] — 98 timestamps/camera, 784 frames total</td>
+</tr>
+<tr>
+<td><strong>Distortion model</strong></td>
+<td>Kannala-Brandt equidistant (factory), <code>OPENCV_FISHEYE</code> (COLMAP)</td>
+</tr>
+<tr>
+<td><strong>Stabilization</strong></td>
+<td>GoPro HyperSmooth EIS — <strong>active</strong>, independent per camera (see <a href="#lessons-learned">Lessons Learned</a>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bug-found-fixed-upstream-gsplat-fisheye-undistortion">Bug Found &amp; Fixed Upstream: gsplat Fisheye Undistortion<a class="headerlink" href="#bug-found-fixed-upstream-gsplat-fisheye-undistortion" title="Permanent link">&para;</a></h2>
+<p>Before any of the rig work, training on the very first reconstruction produced catastrophic renders (PSNR 12.6, streaky noise). Root cause: <code>examples/datasets/colmap.py</code>'s <code>OPENCV_FISHEYE</code> undistortion used <code>theta = sqrt(x1²+y1²)</code> (≈ <code>tan(θ)</code>) instead of the correct <code>theta = atan(r)</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># before (wrong at wide FOV)</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># after (correct)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+</code></pre></div>
+<p>Negligible error near the image center, severe at ~129° FOV. Fixed and committed to the <a href="https://github.com/tusharvaidya-dreamvu/gsplat">gsplat fork</a> (<code>f935073</code>); PSNR recovered to 14.0 on the same poses.</p>
+<hr />
+<h2 id="validating-rig-trajectory-accuracy">Validating Rig Trajectory Accuracy<a class="headerlink" href="#validating-rig-trajectory-accuracy" title="Permanent link">&para;</a></h2>
+<p>Self-calibrated COLMAP (no rig constraint) was compared against the 4 known stereo pairs' factory geometry, using full 3×3 relative-rotation geodesic angles (not just direction vectors, which hide roll error):</p>
+<table>
+<thead>
+<tr>
+<th>Pair</th>
+<th>Factory truth</th>
+<th>Self-cal mean</th>
+<th>Self-cal std</th>
+<th>Error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cam1↔6</td>
+<td>10.4°</td>
+<td>26.8°</td>
+<td>±13.2°</td>
+<td>+16.4°</td>
+</tr>
+<tr>
+<td>cam2↔5</td>
+<td>3.6°</td>
+<td>—</td>
+<td>±12.4°</td>
+<td>—</td>
+</tr>
+<tr>
+<td>cam3↔8</td>
+<td>5.4°</td>
+<td>—</td>
+<td>±36.3°</td>
+<td>—</td>
+</tr>
+<tr>
+<td>cam4↔7</td>
+<td>4.3°</td>
+<td>—</td>
+<td>±34.1°</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Self-calibration drifted by double digits on average, with per-pair std up to <strong>36°</strong> — meaning individual timestamps swung across nearly a full hemisphere of disagreement, not just a fixed bias.</p>
+<p><code>rig_bundle_adjuster --estimate_rig_relative_poses 0</code> locks the relative geometry to the factory values exactly (0.0° error, 0.0° std, by construction) while <code>--estimate_rig_relative_poses</code> free lets intrinsics self-refine. Verified this wasn't a coordinate-frame bug two ways: all 8 <code>cam_from_rig_rotation</code> matrices have determinant exactly +1 (no reflection), and full-matrix disagreement against noise-averaged self-calibration (not just angle magnitude) came out to 5–9° across all 4 independent stereo pairs — consistent with ordinary calibration tolerance, not a systematic axis error.</p>
+<hr />
+<h2 id="camera-synchronization-discovery">Camera Synchronization Discovery<a class="headerlink" href="#camera-synchronization-discovery" title="Permanent link">&para;</a></h2>
+<p>The 8 GoPros were independently triggered — no hardware genlock. Checking each file's <code>creation_time</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Camera</th>
+<th>Start time</th>
+<th>Offset from cam1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cam1</td>
+<td>08:57:20</td>
+<td>0s (reference)</td>
+</tr>
+<tr>
+<td>cam2</td>
+<td>08:57:13</td>
+<td>+7s</td>
+</tr>
+<tr>
+<td>cam3</td>
+<td>08:57:14</td>
+<td>+6s</td>
+</tr>
+<tr>
+<td>cam4</td>
+<td>08:57:25</td>
+<td>−5s</td>
+</tr>
+<tr>
+<td>cam5</td>
+<td>08:57:25</td>
+<td>−5s</td>
+</tr>
+<tr>
+<td>cam6</td>
+<td>08:57:19</td>
+<td>+1s</td>
+</tr>
+<tr>
+<td>cam7</td>
+<td>08:57:20</td>
+<td>0s</td>
+</tr>
+<tr>
+<td>cam8</td>
+<td>08:57:29</td>
+<td>−9s</td>
+</tr>
+</tbody>
+</table>
+<p>Frame extraction originally used each video's own internal elapsed time — meaning "the same timestamp" across 8 files was actually up to <strong>16 seconds apart</strong> in real time, during an active walkthrough. Re-extracting with wall-clock-corrected per-camera offsets and re-running self-calibrated SfM showed the effect directly on rig-rigidity noise:</p>
+<table>
+<thead>
+<tr>
+<th>Pair</th>
+<th>Offset applied</th>
+<th>Std before</th>
+<th>Std after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cam1↔4</td>
+<td>−5s</td>
+<td>19.2°</td>
+<td><strong>2.0°</strong></td>
+</tr>
+<tr>
+<td>cam1↔5</td>
+<td>−5s</td>
+<td>12.4°</td>
+<td><strong>1.8°</strong></td>
+</tr>
+<tr>
+<td>cam1↔8</td>
+<td>−9s (largest)</td>
+<td>36.3°</td>
+<td><strong>2.2°</strong></td>
+</tr>
+<tr>
+<td>cam1↔6</td>
+<td>+1s</td>
+<td>13.2°</td>
+<td>13.4° (unchanged, as expected)</td>
+</tr>
+<tr>
+<td>cam1↔7</td>
+<td>0s</td>
+<td>34.1°</td>
+<td>33.6° (unchanged, as expected)</td>
+</tr>
+<tr>
+<td>cam1↔2</td>
+<td>+7s</td>
+<td>6.4°</td>
+<td>15.4° (worse)</td>
+</tr>
+<tr>
+<td>cam1↔3</td>
+<td>+6s</td>
+<td>12.3°</td>
+<td>36.6° (worse)</td>
+</tr>
+</tbody>
+</table>
+<p>Three of four corrected cameras improved dramatically — one pair went from the worst in the rig (36°) to 2.2°. cam2/cam3 got worse, likely because their <code>creation_time</code> reflects a GoPro chapter boundary rather than true session start (unconfirmed — see <a href="#next-steps">Next Steps</a>).</p>
+<figure>
+<p><img alt="Same-instant stereo pair after sync correction" src="../images/exp-005-multicam-gaussian-splatting/sync-corrected-cam2-cam5.jpg" />
+  </p>
+<figcaption>cam2 / cam5 (a documented near-zero-baseline stereo pair, previously the <em>most</em> desynced at 12s) after wall-clock correction — same wall, window, chair, and table, viewed from two nearby angles.</figcaption>
+</figure>
+<hr />
+<h2 id="imu-cross-check-independent-evidence-of-trajectory-drift">IMU Cross-Check: Independent Evidence of Trajectory Drift<a class="headerlink" href="#imu-cross-check-independent-evidence-of-trajectory-drift" title="Permanent link">&para;</a></h2>
+<p>The GoPros' own embedded telemetry (GPMF track — accelerometer + gyro, ~200Hz, extracted via <a href="https://github.com/AdrianEddy/telemetry-parser"><code>telemetry-parser</code></a>) gives a way to sanity-check COLMAP's rotations against a completely independent, vision-free reference: gravity. This is a different diagnostic from the rig-rigidity check above (which compares COLMAP against factory stereo geometry) — this one compares COLMAP against physics, using no rig knowledge at all.</p>
+<p><strong>Method:</strong> for each registered frame, interpolate the camera-local accelerometer reading at that timestamp, normalize to a unit "local gravity direction," then transform it into world frame via COLMAP's own solved rotation (<code>R_wc @ g_local</code>). If the physical motion is close to pure yaw (turning, no tilt — true for a wheeled/cart-mounted rig, confirmed separately below), composing any number of yaw steps <strong>must</strong> preserve a fixed world-frame gravity direction exactly — rotations about a shared axis compose without leaving that axis. This is linear algebra, not an approximation.</p>
+<p><strong>Findings (on <code>sparse_fisheye_synced</code>, cam1's own 98 frames, single physical camera):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Camera-local gravity direction, full 55K-sample IMU stream</td>
+<td>1.13° mean spread — extremely stable</td>
+</tr>
+<tr>
+<td>Camera-local gravity direction, specifically at the 98 registered-frame timestamps</td>
+<td>1.10° mean spread — confirms no timestamp/interpolation bug</td>
+</tr>
+<tr>
+<td>World-frame gravity (local signal × COLMAP rotation), within cam1's own sequence</td>
+<td><strong>74.5° mean spread</strong></td>
+</tr>
+<tr>
+<td>Pairwise consecutive-frame rotation deltas (COLMAP alone, no IMU)</td>
+<td>0.1–12°, smooth, no jumps</td>
+</tr>
+</tbody>
+</table>
+<p>The last two rows together are the interesting part: COLMAP's frame-to-frame rotations <em>look</em> smooth in isolation, yet composing them disagrees with gravity by tens of degrees. That's consistent with a small, systematic per-step bias that's fixed in the camera's own rotating body frame rather than world frame — it precesses as the camera yaws, invisible pairwise, but compounding into large drift over a sequence. This independently corroborates the rig-rigidity finding above (self-calibration drifting by double digits, std up to 36°) using a completely different measurement — vision-free physics rather than factory stereo geometry.</p>
+<p>Two alternative explanations were tested and ruled out before landing on "COLMAP rotation drift":</p>
+<ol>
+<li><strong>IMU axis-convention or mounting-offset bug</strong> — ruled out. A fixed/constant offset between the IMU's reported frame and the camera's true optical frame would produce a <em>consistent but rotated</em> result when combined with vision poses, not scatter. Tested both rotation-matrix conventions (<code>R</code> and <code>R.T</code>); both failed the same way (~70-75° spread either direction).</li>
+<li><strong>Noisy/bad IMU data</strong> (e.g. from real walking motion) — ruled out. Camera-local gravity is stable to ~1° across the <em>entire</em> stream, not just isolated instants — there's no meaningful contamination to explain away.</li>
+</ol>
+<h3 id="attempted-fix-per-frame-gravity-alignment-failed">Attempted Fix: Per-Frame Gravity Alignment (Failed)<a class="headerlink" href="#attempted-fix-per-frame-gravity-alignment-failed" title="Permanent link">&para;</a></h3>
+<p>The natural next step: for every frame, apply the minimal rotation (axis ⊥ to both vectors, touching yaw not at all) that forces its own measured world-gravity estimate to match one fixed target. This corrects exactly the 2 drifting DOF (roll/pitch) and, in principle, leaves yaw untouched.</p>
+<p><strong>Result: made things worse, not better.</strong> Pairwise consecutive-frame rotation deltas <em>after</em> correction jumped to 4–127° (vs. the original smooth 0.1–12°). Root cause: the correction is applied fully independently per frame, with no temporal smoothing — since the <em>input</em> world-gravity estimates were themselves inconsistent frame-to-frame, forcibly snapping each one to an identical target just inherits that inconsistency as discontinuous jumps. It's a symptom-level patch, not a fix for whatever's actually making COLMAP's per-frame rotations mutually inconsistent.</p>
+<p><strong>What a real fix requires:</strong> joint optimization — bundle adjustment that minimizes vision reprojection error <em>and</em> IMU relative-rotation residuals between consecutive frames simultaneously (not one overriding the other), letting both information sources properly average out. That's a genuine build (custom cost function in scipy/g2o, or patching COLMAP's C++ bundle adjuster) — not attempted here; logged as future work below.</p>
+<h3 id="rig-locked-retry-on-the-sync-corrected-model-also-failed">Rig-Locked Retry on the Sync-Corrected Model: Also Failed<a class="headerlink" href="#rig-locked-retry-on-the-sync-corrected-model-also-failed" title="Permanent link">&para;</a></h3>
+<p>The pending next step from the previous update — running <code>rig_bundle_adjuster</code>-style rig-constrained mapping fresh on <code>sparse_fisheye_synced</code> (rather than gravity-correcting <code>sparse_fisheye_synced</code> directly) — was attempted and <strong>failed to find a usable seed</strong>: <code>colmap mapper</code> on the rig database repeatedly logged <code>Finding good initial image pair → No good initial image pair found</code>, terminating after ~10.7 minutes with no reconstruction. This is a different failure mode than the earlier rig-locked runs (which <em>did</em> register images, just blurrily) — it suggests the rig constraint combined with the sync-corrected frame set doesn't even have a clean enough starting pair to seed from, not just a downstream blur problem.</p>
+<p>Given two independent attempts to fix the 8-camera trajectory (naive IMU gravity-snap, and a fresh rig-locked mapper pass) both failed, the practical path taken next was to sidestep the multi-camera consistency problem entirely — see below.</p>
+<hr />
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<h3 id="fisheye-rectified-undistortion-factory-calibration">Fisheye → rectified undistortion (factory calibration)<a class="headerlink" href="#fisheye-rectified-undistortion-factory-calibration" title="Permanent link">&para;</a></h3>
+<figure>
+<p><img alt="Fisheye vs rectified" src="../images/exp-005-multicam-gaussian-splatting/fisheye-vs-rectified.jpg" />
+  </p>
+<figcaption>Left: raw fisheye frame. Right: rectified using factory per-camera K/D. Vertical slats and door frame straighten correctly.</figcaption>
+</figure>
+<h3 id="reconstruction-variants-tried">Reconstruction variants tried<a class="headerlink" href="#reconstruction-variants-tried" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Approach</th>
+<th>Images registered</th>
+<th>Reprojection error</th>
+<th>PSNR</th>
+<th>SSIM</th>
+<th>LPIPS</th>
+<th>Gaussians</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result_30k</code></td>
+<td>Self-cal, buggy undistort</td>
+<td>784/784</td>
+<td>0.82px</td>
+<td>12.61</td>
+<td>0.639</td>
+<td>0.744</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>result_30k_v2</code></td>
+<td>Self-cal, fix applied</td>
+<td>784/784</td>
+<td>0.82px</td>
+<td>13.97</td>
+<td>0.679</td>
+<td>0.594</td>
+<td>626,330</td>
+</tr>
+<tr>
+<td><code>result_rig_30k</code></td>
+<td>Rig-locked, offline pinhole undistort (1600²)</td>
+<td>663/784</td>
+<td>0.90px</td>
+<td>13.88</td>
+<td>0.721</td>
+<td>0.667</td>
+<td>46,061</td>
+</tr>
+<tr>
+<td><code>result_hires_30k</code></td>
+<td>Rig-locked, offline pinhole undistort (1920×1680)</td>
+<td>738/784</td>
+<td>0.93px</td>
+<td>13.90</td>
+<td>0.722</td>
+<td>0.645</td>
+<td>60,481</td>
+</tr>
+<tr>
+<td><code>result_fisheye_30k</code></td>
+<td>Rig-locked, raw fisheye + self-refined intrinsics</td>
+<td><strong>784/784</strong></td>
+<td><strong>0.79px</strong> (best)</td>
+<td><strong>14.45</strong> (best)</td>
+<td><strong>0.739</strong> (best)</td>
+<td>0.624</td>
+<td>82,106</td>
+</tr>
+<tr>
+<td><code>result_fisheye_synced</code></td>
+<td>Rig-locked + wall-clock sync correction</td>
+<td>784/784, single connected model</td>
+<td>pending retrain</td>
+<td>pending</td>
+<td>pending</td>
+<td>pending</td>
+<td>pending</td>
+</tr>
+</tbody>
+</table>
+<p><code>result_fisheye_30k</code> is the best-performing rig-locked variant on every metric, and the reprojection error is better than even the original unconstrained self-calibration (0.79px vs 0.82px) — locking the true geometry cost nothing in 2D fit quality.</p>
+<h3 id="the-counter-intuitive-finding-correct-geometry-sharp-render">The counter-intuitive finding: correct geometry ≠ sharp render<a class="headerlink" href="#the-counter-intuitive-finding-correct-geometry-sharp-render" title="Permanent link">&para;</a></h3>
+<p>Despite <code>result_fisheye_30k</code> having the best metrics of any rig-locked run, and the <em>same</em> camera model (raw fisheye, self-refined intrinsics) that produced sharp results in <code>result_30k_v2</code>, its actual renders are visibly blurrier — confirmed on the <strong>exact same frame</strong> (cam1, t=0125) from both runs:</p>
+<figure>
+<p><img alt="Self-calibrated: sharp" src="../images/exp-005-multicam-gaussian-splatting/selfcal-sharp-cam1-t0125.jpg" />
+  </p>
+<figcaption><code>result_30k_v2</code> (self-calibrated, no rig lock) — ground truth (left) vs. render (right). Desks, chairs, cabinets, orange wall all sharp and recognizable.</figcaption>
+</figure>
+<figure>
+<p><img alt="Rig-locked: blurry" src="../images/exp-005-multicam-gaussian-splatting/riglocked-blurry-cam1-t0125.jpg" />
+  </p>
+<figcaption><code>result_fisheye_30k</code> (rig-locked, same physical camera, same nominal frame) — ground truth (left) vs. render (right). Heavily blurred despite better reprojection error and identical camera model.</figcaption>
+</figure>
+<p>Four separate hypotheses were tested and ruled out before landing on the real explanation (see <a href="#lessons-learned">Lessons Learned</a>):</p>
+<ol>
+<li>Densification threshold too conservative (<code>--strategy.grow-grad2d</code>) — halved it, Gaussian count grew 3.5× but blur was unchanged.</li>
+<li>Offline undistortion resolution/FOV too narrow — redid at full 1920×1680, same blur.</li>
+<li>Rig extrinsics in a different coordinate frame than COLMAP's convention — ruled out directly (determinant check + full-matrix comparison against noise-averaged self-calibration, see above).</li>
+<li><code>rig_bundle_adjuster</code> not fully converged (<code>Termination: No convergence</code>) — reran with tight tolerances, it converged, final cost barely moved, same blur.</li>
+</ol>
+<h3 id="single-camera-fallback-cam4-sidesteps-the-drift-problem-entirely">Single-Camera Fallback (cam4) — Sidesteps the Drift Problem Entirely<a class="headerlink" href="#single-camera-fallback-cam4-sidesteps-the-drift-problem-entirely" title="Permanent link">&para;</a></h3>
+<p>With both the IMU-based drift correction and a fresh rig-locked mapper attempt having failed (see above), the practical move was to stop fighting multi-camera consistency and reconstruct from <strong>one camera only</strong>. A single camera has no cross-camera sync/rig-consistency problem to begin with — the whole failure mode this experiment has been chasing simply doesn't exist for a monocular sequence.</p>
+<p><strong>Camera selection:</strong> sampled all 8 cameras at 5 timestamps each across the session to find which one best frames both tables. <code>cam4</code> and <code>cam7</code> were the clear candidates (3/5 sampled frames each showing a clear round table); <code>cam4</code> was chosen, with a further dense scan confirming a sustained ~120s continuous-arc window (t≈90–210s) with strong, consistent coverage of both tables.</p>
+<p><strong>Pipeline:</strong> 121 frames (1/sec over the window) → monocular <code>OPENCV_FISHEYE</code> COLMAP SfM (<strong>121/121 registered, 100%</strong>, single connected model, ~2 min total — no drift, because there's nothing to drift <em>against</em>) → <code>colmap image_undistorter</code> (fisheye→pinhole, required because gsplat's rasterizer needs pinhole-like projection geometry for the EWA splatting math — see note below) → nerfstudio <code>splatfacto</code>, 30k steps.</p>
+<p><strong>Masking the rig body:</strong> every frame has a neighboring GoPro housing fixed in the same pixel region (rig structure, same issue the user flagged for the multi-camera captures). Critically, a mask applied only at COLMAP's feature-extraction stage keeps it out of <em>matching</em>, but the raw pixels are still what gets trained on — the housing would still get reconstructed as a floating artifact. The mask has to <em>also</em> be passed to nerfstudio's training stage (<code>colmap --masks-path masks</code>, resolution-matched to the post-undistortion image size, which differs from the pre-undistortion size) so it's excluded from the photometric loss too. Done correctly, the splat naturally inpaints the occluded region from nearby viewpoints along the arc — no visible trace of the rig body in the final render.</p>
+<figure>
+<p><img alt="Rig body masked cleanly" src="../images/exp-005-multicam-gaussian-splatting/cam4-rig-body-mask.jpg" />
+  </p>
+<figcaption>Masked region (red) covering the neighboring GoPro housing, in post-undistortion pixel space — has to be rebuilt per resolution tier since undistortion changes image dimensions non-trivially.</figcaption>
+</figure>
+<figure>
+<p><img alt="cam4 single-camera result: original vs splat" src="../images/exp-005-multicam-gaussian-splatting/cam4-single-hd-compare.jpg" />
+  </p>
+<figcaption>Original (left) vs. splat render (right), same frame. Rig housing fully gone from the render — inpainted from other viewpoints along the arc. Both round tables reconstructed coherently and clearly visible together in other frames from the same run.</figcaption>
+</figure>
+<p><strong>Result:</strong> PSNR 21.02, SSIM 0.917, LPIPS 0.190 (<code>ns-eval</code>, 16 held-out views), 336,682 Gaussians. Note this used the standard nerfstudio+gsplat integration path (pre-undistort to pinhole, <code>ns-train splatfacto</code>), which is a <strong>different code path</strong> than the native-fisheye <code>gsplat</code> example trainer used elsewhere in this experiment (the one with the <code>theta=atan(r)</code> fix above) — nerfstudio's own camera/ray-generation layer doesn't call into that fisheye-aware trainer code at all, so that fix doesn't carry over automatically when going through <code>ns-train</code>. Pre-undistorting to pinhole is the correct workaround specifically for the nerfstudio integration path.</p>
+<h3 id="resolution-ablation-hd-4k-5k">Resolution Ablation (HD / 4K / 5K)<a class="headerlink" href="#resolution-ablation-hd-4k-5k" title="Permanent link">&para;</a></h3>
+<p>A controlled follow-up, directly relevant to the open "does more resolution help splat quality" question from other capture work: using the <em>exact same</em> 121-frame trajectory, camera poses, and sparse point cloud (poses don't depend on image resolution — only intrinsics scale, translations are in world units), three resolution tiers were extracted natively from the same source video and trained identically (30k steps each):</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Undistorted resolution</th>
+<th>PSNR</th>
+<th>SSIM</th>
+<th>LPIPS</th>
+<th>FPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HD</td>
+<td>3041×2328</td>
+<td>21.02</td>
+<td>0.917</td>
+<td>0.190</td>
+<td>36.1</td>
+</tr>
+<tr>
+<td>4K</td>
+<td>6086×4658</td>
+<td>21.03</td>
+<td>0.927</td>
+<td>0.225</td>
+<td>9.0</td>
+</tr>
+<tr>
+<td>5K</td>
+<td>8420×6445</td>
+<td>21.02</td>
+<td>0.930</td>
+<td>0.225</td>
+<td>4.8</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<p><img alt="4K comparison" src="../images/exp-005-multicam-gaussian-splatting/cam4-single-4k-compare.jpg" />
+  </p>
+<figcaption>4K tier — original vs. splat, same frame as the HD comparison above.</figcaption>
+</figure>
+<figure>
+<p><img alt="5K comparison" src="../images/exp-005-multicam-gaussian-splatting/cam4-single-5k-compare.jpg" />
+  </p>
+<figcaption>5K tier — original vs. splat, same frame.</figcaption>
+</figure>
+<p><strong>PSNR is flat across HD→4K→5K at matched training budget (30k steps).</strong> SSIM ticks up slightly with resolution; LPIPS gets <em>worse</em>, not better, at higher resolution. Most likely explanation: higher-resolution targets have more high-frequency detail to fit, and a fixed iteration count isn't enough to converge as tightly per-pixel — the extra input detail isn't "free," it costs more optimization to actually use. FPS drops hard as expected (more pixels to rasterize per frame). This is a real, checkable result worth reconciling against any other resolution-vs-quality claims made from a <em>different</em> training budget per tier — if iteration count scaled up with resolution elsewhere, that would explain a genuinely different (improving) trend.</p>
+<hr />
+<h2 id="impediments">Impediments<a class="headerlink" href="#impediments" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Current Blockers</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> cam2/cam3 sync correction made rigidity <em>worse</em>, not better — likely GoPro chapter-split metadata (file's <code>creation_time</code> reflects chapter start, not true session start), not yet confirmed or fixed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ~~<code>result_fisheye_synced</code> reconstruction has not yet been through <code>rig_bundle_adjuster</code> + gsplat training~~ — <strong>attempted, failed</strong>: <code>colmap mapper</code> on the rig-constrained database couldn't find a usable initial image pair at all (<code>No good initial image pair found</code>, repeated, ~10.7 min, no reconstruction). Different failure mode than earlier rig-locked runs (which registered but rendered blurry) — this one can't even seed.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ~~No independent way to check whether the drift is real or a self-calibration artifact~~ — <strong>confirmed independently via IMU</strong>: camera-local accelerometer gravity direction is stable to ~1° (both full-stream and at exact registered-frame timestamps), yet composing it through COLMAP's own solved rotations produces 74.5° mean world-frame scatter within a <em>single camera's</em> own sequence. Two alternative explanations (IMU axis/calibration offset, noisy IMU data) were tested and ruled out — points at genuine rotation drift in COLMAP's estimates, not an IMU artifact.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> A naive per-frame IMU gravity-alignment correction was tried as a fix and made pose smoothness <em>worse</em> (pairwise deltas jumped from smooth 0.1–12° to 4–127°) — it's a symptom-level patch, not a real fix. A proper fix needs joint bundle adjustment (vision + IMU residuals optimized together), not yet attempted.</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Known Risks</p>
+<ul>
+<li>HyperSmooth EIS is applied independently per camera, frame by frame — this is suspected to be the real ceiling on render sharpness (see below), and no amount of calibration/sync fixing may fully resolve it without disabling EIS at capture time</li>
+<li>GPU host is shared (8× RTX PRO 6000 Blackwell) — CUDA MPS was found misconfigured (stuck in <code>EXCLUSIVE_PROCESS</code> mode, blocking other users) during this experiment and had to be stopped; all training in this experiment now deliberately pinned to GPU 0/1 only</li>
+</ul>
+</div>
+<div class="admonition success">
+<p class="admonition-title">Practical Resolution (interim)</p>
+<p>Rig-wide (8-camera) reconstruction remains blocked pending a real joint IMU+vision fix (see Next Steps). The single-camera <code>cam4</code> pipeline is validated and working — 100% registration, no drift, clean masking, both tables reconstructed coherently — and is the recommended path for deliverables that don't strictly need the full 360° rig coverage.</p>
+</div>
+<hr />
+<h2 id="evaluation-protocol">Evaluation Protocol<a class="headerlink" href="#evaluation-protocol" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Metric:</strong> PSNR / SSIM / LPIPS on held-out <code>test_every=8</code> views, cross-checked against direct visual inspection of same-pose renders (the automated split can silently cluster onto one camera depending on filename sort order — caught and worked around twice in this experiment)</li>
+<li><strong>Ground truth for trajectory accuracy:</strong> factory az/el rig calibration (<code>stitcher_rotations.yaml</code>), independent of any COLMAP output</li>
+<li><strong>Real environment:</strong> office walkthrough, two work tables as primary objects of interest</li>
+</ul>
+<hr />
+<h2 id="lessons-learned">Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>A hard rig constraint and independently-stabilized cameras don't mix well.</strong> HyperSmooth EIS warps each camera's video independently, frame by frame, based on that camera's own IMU. The physical rig is rigid; the <em>video content</em> isn't, at the per-frame level. Self-calibration can absorb this (each frame's pose is estimated independently); a hard rig lock cannot (it forces identical relative geometry every timestamp), and the residual mismatch shows up as pervasive dense blur while sparse-keypoint reprojection error stays deceptively low.</li>
+<li><strong>Low reprojection error is not sufficient evidence of correctness.</strong> Every rig-locked variant reported 0.79–0.93px reprojection error — as good as or better than self-calibration — while still rendering worse. Reprojection error is measured at sparse, robust SIFT keypoints; dense photometric quality needs much tighter multi-view pixel agreement than that.</li>
+<li><strong><code>test_every=8</code> eval splits silently encode a sampling bias</strong> that depends entirely on filename sort order (camera-then-timestamp vs timestamp-then-camera). Caught this twice — once discovering an eval set was 100% one camera, meaning reported metrics for that run reflected only that camera's reconstruction quality.</li>
+<li><strong>Unsynced multi-camera capture is a real, checkable failure mode.</strong> A quick <code>creation_time</code>/<code>ffprobe</code> check across all 8 files would have caught the up-to-16-second desync before any reconstruction work started.</li>
+<li><strong>COLMAP's "no convergence" isn't always meaningful</strong> — it can just mean the default iteration cap was hit with strict tolerances on an already-near-optimal solution. Always check whether the reported cost actually moves before treating it as a red flag.</li>
+<li><strong>A shared GPU host needs active monitoring, not just good intentions</strong> — <code>nvidia-mps.service</code> was silently locking all 8 GPUs to <code>EXCLUSIVE_PROCESS</code> mode host-wide, blocking every other user, until manually caught and stopped.</li>
+<li><strong>A physics-based cross-check (IMU gravity) can confirm a drift diagnosis that reprojection error alone can't.</strong> Reprojection error looked fine (0.79–0.93px) across every rig-locked variant even though rendering was blurry; the IMU cross-check gave an independent, vision-free signal (74.5° world-frame gravity scatter within one camera's own sequence) pointing at the same root cause the rig-rigidity numbers already suggested — two unrelated diagnostics agreeing is much stronger evidence than either alone.</li>
+<li><strong>Don't trust a per-frame "fix" that isn't jointly optimized.</strong> Snapping each frame's orientation independently to satisfy an external constraint (IMU gravity, here) without any temporal coupling can make pose smoothness <em>worse</em>, not better, if the constraint itself is derived from already-inconsistent inputs. The lesson generalizes past IMU: any per-frame correction needs to be solved jointly with its neighbors, not applied frame-by-frame in isolation.</li>
+<li><strong>When multi-camera consistency is unresolved, don't block the whole deliverable on it.</strong> A single-camera reconstruction has no rig/sync consistency problem by construction — it was faster to build, registered 100%, and produced a clean, usable splat while the 8-camera drift root-cause remains open. Prefer "ship the narrower thing that works" over blocking on the harder problem when the narrower thing meets the actual need (two tables, not full 360° coverage).</li>
+<li><strong>A mask must be applied at both the SfM-matching stage <em>and</em> the splat-training stage, separately.</strong> COLMAP's <code>--ImageReader.camera_mask_path</code> only keeps a region out of feature matching — the raw pixels are still what nerfstudio trains on. The rig housing only disappeared from the final render after also wiring the (separately resolution-scaled, since undistortion changes image dimensions) mask into <code>ns-train ... colmap --masks-path</code>.</li>
+<li><strong>Resolution doesn't buy PSNR for free at a fixed training budget.</strong> HD/4K/5K trained for the same 30k steps on identical poses/points produced flat PSNR (21.0 across all three) and <em>worse</em> LPIPS at higher resolution — more detail to fit costs more optimization to actually use, it doesn't improve results "for free" unless iteration count scales with it too.</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Confirm the cam2/cam3 chapter-split hypothesis (check for <code>GH02...</code>/multi-chapter filenames or GPMF telemetry timestamps) and correct their offsets properly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ~~Run <code>rig_bundle_adjuster</code> + full gsplat training on <code>result_fisheye_synced</code>~~ — attempted, failed at the mapper stage (no usable initial pair found); see <a href="#rig-locked-retry-on-the-sync-corrected-model-also-failed">Rig-Locked Retry</a> above</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Build a real joint IMU+vision optimization (bundle adjustment with both reprojection <em>and</em> IMU relative-rotation residuals, solved together) — the naive per-frame gravity-snap correction tried here isn't sufficient and shouldn't be reused as-is</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> If EIS-induced blur remains the ceiling after full sync correction, the real fix is upstream: re-shoot with EIS disabled, or with a higher shutter speed if it turns out to be genuine motion blur rather than EIS warp</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Consider whether <code>rig_bundle_adjuster</code>'s hard constraint could be relaxed into a soft prior/regularizer instead of an exact lock, to combine trajectory-accuracy guarantees with self-calibration's per-frame flexibility</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Investigate whether resolution <em>does</em> improve PSNR when training iteration count is scaled proportionally with resolution, rather than held fixed (this experiment only tested fixed-budget, see Resolution Ablation above)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> If more of the rig's angular coverage is needed than one camera gives, consider reconstructing 2–3 well-chosen cameras independently (each monocular, no rig constraint) and merging point clouds post-hoc, rather than a single rig-wide joint solve</li>
+</ul>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/tusharvaidya-dreamvu/gsplat">gsplat fork</a> — undistortion fix, <code>CLAUDE.md</code> environment/pipeline documentation, <code>scripts/</code> (mask/export/render utilities)</li>
+<li>Factory calibration source: <code>Alia_16K/parikshit_workspace/capan1/snapshots/snapshot_2026_06_18/</code> (<code>calibration_outputs/</code>, <code>README_PIPELINE.md</code>, <code>code/hires_stitch.py</code>)</li>
+<li><a href="https://github.com/AdrianEddy/telemetry-parser">telemetry-parser</a> — GPMF (GoPro) IMU extraction, used for the gravity cross-check above (<code>tp.normalized_imu()</code>)</li>
+<li>Single-camera pipeline environment: nerfstudio + <code>gsplat</code> fork + <code>hloc</code>, built in a distrobox container on the shared 8×RTX PRO 6000 Blackwell host — standard nerfstudio <code>ns-train splatfacto</code> integration path (distinct from the native-fisheye <code>gsplat</code> example trainer used earlier in this experiment)</li>
+<li>Related: <a href="../exp-002-mediapipe-hand-retargeting/">EXP-002</a> — same wiki, unrelated pipeline, similar "trust but verify the geometry" lesson</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../exp-003-saber-gt003-groot-finetune/" class="md-footer__link md-footer__link--prev" aria-label="Previous: EXP-003: SABER GT003 → GR00T N1.7">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                EXP-003: SABER GT003 → GR00T N1.7
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../exp-006-splat-blender-usd-scene/" class="md-footer__link md-footer__link--next" aria-label="Next: EXP-006: Splat → Blender → USD Scene">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                EXP-006: Splat → Blender → USD Scene
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

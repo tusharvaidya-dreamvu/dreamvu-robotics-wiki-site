@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EgoDex: Learning Dexterous Manipulation from Large-Scale Egocentric Video</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --border: #2a2a4a;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --highlight-bg: #1e1b4b;
+  --highlight-border: #7c3aed;
+  --green: #22c55e;
+  --red: #ef4444;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+/* ── Slide container ── */
+#deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(40px);
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev { transform: translateX(-40px); }
+
+.slide-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 56px 72px 48px;
+  overflow: hidden;
+}
+.slide-inner.centered { align-items: center; justify-content: center; text-align: center; }
+
+/* ── Progress ── */
+.progress-bar { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+.slide-counter {
+  position: absolute; bottom: 18px; right: 28px;
+  font-size: 13px; color: var(--text-muted); letter-spacing: 0.05em;
+}
+
+/* ── Nav buttons ── */
+#nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; }
+.nav-btn {
+  padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+#slide-num { padding: 10px 16px; color: var(--text-muted); font-size: 14px; align-self: center; }
+
+/* ── Title slide ── */
+.slide-title { background: radial-gradient(ellipse at 60% 40%, #1e1040 0%, var(--bg) 70%); }
+.title-badge {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  background: rgba(124,58,237,0.2); border: 1px solid var(--accent);
+  font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.title-main { font-size: clamp(32px, 5vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
+.title-sub { font-size: clamp(16px, 2vw, 22px); color: var(--text-muted); margin-bottom: 24px; }
+.slide-meta { font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ── Section slide ── */
+.slide-section { background: linear-gradient(135deg, #1a0a40 0%, var(--bg) 100%); }
+.section-label {
+  font-size: 13px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+.section-title { font-size: clamp(28px, 4vw, 52px); font-weight: 700; }
+
+/* ── Common slide heading ── */
+.slide-title { font-size: clamp(20px, 2.5vw, 32px); font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.slide-intro { font-size: 16px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+/* ── Bullets ── */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.bullet-list li {
+  padding: 12px 16px 12px 44px; position: relative;
+  background: var(--surface); border-radius: 8px; border: 1px solid var(--border);
+  font-size: clamp(13px, 1.4vw, 16px); line-height: 1.55; color: var(--text);
+}
+.bullet-list li::before {
+  content: "→"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-weight: 700;
+}
+.bullet-list li strong { color: var(--accent2); }
+.bullet-list li code { background: rgba(124,58,237,0.2); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; }
+
+/* ── Highlight box ── */
+.highlight-box {
+  margin-top: 16px; padding: 14px 18px;
+  background: var(--highlight-bg); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; font-size: clamp(13px, 1.3vw, 15px);
+  color: #c4b5fd; line-height: 1.6;
+}
+
+/* ── Stats ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 20px; text-align: center;
+}
+.stat-value { font-size: clamp(24px, 3vw, 40px); font-weight: 800; color: var(--accent2); margin-bottom: 8px; }
+.stat-label { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Two column ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.col-title {
+  font-size: 15px; font-weight: 600; color: var(--accent2);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+}
+
+/* ── Table ── */
+.table-note { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(12px, 1.2vw, 14px); }
+thead tr { background: var(--accent); }
+thead th { padding: 10px 14px; text-align: left; font-weight: 600; color: white; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 9px 14px; color: var(--text-muted); }
+tbody td strong { color: var(--accent2); font-weight: 600; }
+tbody tr:last-child td { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<div class="slide slide-title" data-index="0">
+  <div class="slide-inner centered">
+    <div class="title-badge">Paper Review</div>
+    <h1 class="title-main">EgoDex</h1>
+    <p class="title-sub">Learning Dexterous Manipulation from Large-Scale Egocentric Video</p>
+    <div class="slide-meta">Hoque, Huang, Yoon, Sivapurapu, Zhang · Apple · ICLR 2026</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:4.3%"></div></div><div class="slide-counter">1 / 23</div>
+</div>
+
+<div class="slide slide-section" data-index="1">
+  <div class="slide-inner centered">
+    <div class="section-label">Context</div>
+    <h2 class="section-title">The Data Problem in Manipulation</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:8.7%"></div></div><div class="slide-counter">2 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="2">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Bitter Lesson in Robot Learning</h2>
+    <p class="slide-intro">Scale drives breakthroughs in NLP and vision — but manipulation lacks Internet-scale corpora.</p>
+    <ul class="bullet-list"><li><strong>Teleoperation</strong> (DROID, RT-X): labor-intensive, hardware-dependent, fundamentally unscalable</li><li><strong>Internet video</strong> (Ego4D, EPIC-KITCHENS): no precise dexterous annotations, no motor action labels</li><li><strong>Prior egocentric work</strong> (EgoMimic): ~4 hours, wrist-position only, just 3 tasks</li></ul>
+    <div class="highlight-box">No existing source combines scale + dexterous annotation + language + camera calibration.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:13.0%"></div></div><div class="slide-counter">3 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="3">
+  <div class="slide-inner">
+    <h2 class="slide-title">EgoDex: Core Idea</h2>
+    <p class="slide-intro">Egocentric human video + 3D hand pose = passively scalable manipulation data.</p>
+    <ul class="bullet-list"><li>Everyday people performing natural tasks — no robot hardware, no expert operators</li><li>Apple Vision Pro provides production-grade 25-joint hand tracking on-device</li><li>Collection scales like Internet video, not like teleoperation</li></ul>
+    <div class="highlight-box">Same paradigm shift that Common Crawl gave NLP — applied to dexterous manipulation.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:17.4%"></div></div><div class="slide-counter">4 / 23</div>
+</div>
+
+<div class="slide slide-section" data-index="4">
+  <div class="slide-inner centered">
+    <div class="section-label">Dataset</div>
+    <h2 class="section-title">EgoDex Dataset</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:21.7%"></div></div><div class="slide-counter">5 / 23</div>
+</div>
+
+<div class="slide slide-stats" data-index="5">
+  <div class="slide-inner">
+    <h2 class="slide-title">Dataset at a Glance</h2>
+    <div class="stat-grid"><div class="stat-card"><div class="stat-value">829 hrs</div><div class="stat-label">of 1080p egocentric video</div></div><div class="stat-card"><div class="stat-value">338K</div><div class="stat-label">demonstrations</div></div><div class="stat-card"><div class="stat-value">90M</div><div class="stat-label">frames at 30 Hz</div></div><div class="stat-card"><div class="stat-value">194</div><div class="stat-label">unique manipulation tasks</div></div><div class="stat-card"><div class="stat-value">25</div><div class="stat-label">finger joints tracked per hand</div></div><div class="stat-card"><div class="stat-value">2.0 TB</div><div class="stat-label">compressed (500+ TB raw)</div></div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:26.1%"></div></div><div class="slide-counter">6 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="6">
+  <div class="slide-inner">
+    <h2 class="slide-title">Collection Hardware: Apple Vision Pro</h2>
+    
+    <ul class="bullet-list"><li>High-res passthrough cameras, wide field of view, 1920×1080 @ 30 Hz</li><li>ARKit on-device SLAM — known camera intrinsics & extrinsics at 30 Hz</li><li>Production-grade 25-joint hand tracking — no gloves, no markers, bare hands</li><li>Per-joint confidence scores for occlusion/uncertainty flagging</li><li>GPT-4 pipeline refines noisy raw task metadata into clean language descriptions</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:30.4%"></div></div><div class="slide-counter">7 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="7">
+  <div class="slide-inner">
+    <h2 class="slide-title">194 Tasks: What's Covered</h2>
+    <p class="slide-intro">Organized into three reset categories:</p>
+    <ul class="bullet-list"><li><strong>Reversible (76 pairs):</strong> charging/uncharging, stacking/unstacking, folding/unfolding</li><li><strong>Reset-free (28):</strong> ball throwing, card dealing — final state ≈ initial state</li><li><strong>Reset tasks (14):</strong> pick-place requiring manual environment reset</li></ul>
+    <div class="highlight-box">Examples: shoelace tying, laundry folding, furniture assembly (FurnitureBench), board games (Reversi), knitting, jigsaw puzzles, blow-drying hair.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:34.8%"></div></div><div class="slide-counter">8 / 23</div>
+</div>
+
+<div class="slide slide-table" data-index="8">
+  <div class="slide-inner">
+    <h2 class="slide-title">How EgoDex Compares</h2>
+    <p class="table-note">EgoDex is the only dataset combining language + extrinsics + dexterous annotation at scale.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Dataset</th><th>Traj.</th><th>Tasks</th><th>Frames</th><th>Lang</th><th>Cam Ext</th><th>Dexterous</th><th>Type</th></tr></thead><tbody><tr><td>DROID</td><td>76K</td><td>86</td><td>19M</td><td>✓</td><td>✓</td><td>✗</td><td>Teleop</td></tr><tr><td>EPIC-KITCHENS</td><td>40K</td><td>125</td><td>12M</td><td>✓</td><td>✗</td><td>✗</td><td>Egocentric</td></tr><tr><td>Ego4D (HOI)</td><td>89K</td><td>—</td><td>21M</td><td>✓</td><td>✗</td><td>✗</td><td>Egocentric</td></tr><tr><td><strong>EgoDex</strong></td><td><strong>338K</strong></td><td><strong>194</strong></td><td><strong>90M</strong></td><td><strong>✓</strong></td><td><strong>✓</strong></td><td><strong>✓</strong></td><td><strong>Egocentric</strong></td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:39.1%"></div></div><div class="slide-counter">9 / 23</div>
+</div>
+
+<div class="slide slide-section" data-index="9">
+  <div class="slide-inner centered">
+    <div class="section-label">Method</div>
+    <h2 class="section-title">Benchmarks & Models</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:43.5%"></div></div><div class="slide-counter">10 / 23</div>
+</div>
+
+<div class="slide slide-two-col" data-index="10">
+  <div class="slide-inner">
+    <h2 class="slide-title">48-Dim Action Space</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Per Hand (× 2)</h3><ul class="bullet-list"><li>3D wrist position</li><li>6D wrist orientation</li><li>3D position × 5 fingertips</li><li>= 24 dims per hand</li></ul></div>
+      <div class="col"><h3 class="col-title">Full Action Vector</h3><ul class="bullet-list"><li>2 hands × 24 = 48 dimensions</li><li>Expressed as relative trajectory chunks</li><li>In camera frame coordinates</li><li>Prediction horizon H timesteps</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:47.8%"></div></div><div class="slide-counter">11 / 23</div>
+</div>
+
+<div class="slide slide-two-col" data-index="11">
+  <div class="slide-inner">
+    <h2 class="slide-title">Two Evaluation Benchmarks</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Trajectory Prediction</h3><ul class="bullet-list"><li>Input: egocentric images, poses, language</li><li>Output: next H=60 timesteps (2 seconds)</li><li>Tests open-ended multimodal generation</li><li>Evaluates diverse completion strategies</li></ul></div>
+      <div class="col"><h3 class="col-title">Inverse Dynamics (Goal-Conditioned)</h3><ul class="bullet-list"><li>Input: same + goal image at t+H</li><li>Output: intermediate trajectories</li><li>Visual anchor resolves multimodality</li><li>More constrained, easier problem</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:52.2%"></div></div><div class="slide-counter">12 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="12">
+  <div class="slide-inner">
+    <h2 class="slide-title">Model Architectures & Policy Types</h2>
+    <p class="slide-intro">2 architectures × 3 policy representations = 6 main variants</p>
+    <ul class="bullet-list"><li><strong>Dec (Decoder-only):</strong> single causal transformer processes all inputs concatenated</li><li><strong>EncDec (Encoder-Decoder):</strong> ResNet image encoder + CLIP text encoder → cross-attention → causal decoder</li><li><strong>BC (Behavior Cloning):</strong> deterministic regression — one prediction per input</li><li><strong>DDPM:</strong> stochastic diffusion, 16 denoising steps</li><li><strong>Flow Matching (FM):</strong> continuous normalizing flows, 16 sampling steps</li></ul>
+    <div class="highlight-box">Training: 50K steps, batch 2048, 8× A100 80GB, ~72 hours.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:56.5%"></div></div><div class="slide-counter">13 / 23</div>
+</div>
+
+<div class="slide slide-section" data-index="13">
+  <div class="slide-inner centered">
+    <div class="section-label">Results</div>
+    <h2 class="section-title">Key Findings</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:60.9%"></div></div><div class="slide-counter">14 / 23</div>
+</div>
+
+<div class="slide slide-table" data-index="14">
+  <div class="slide-inner">
+    <h2 class="slide-title">Main Results: Trajectory Prediction (H=60, 2 sec)</h2>
+    <p class="table-note">Metric: Best-of-K Euclidean distance (meters) across 12 keypoints. Lower is better.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Model</th><th>K=1 Avg</th><th>K=5 Avg</th><th>K=10 Avg</th><th>K=1 Final</th><th>K=10 Final</th></tr></thead><tbody><tr><td>Dec + BC</td><td>0.045</td><td>0.045</td><td>0.045</td><td>0.062</td><td>0.062</td></tr><tr><td>Dec + DDPM</td><td>0.053</td><td>0.044</td><td>0.041</td><td>0.071</td><td>0.044</td></tr><tr><td>Dec + FM</td><td>0.052</td><td>0.042</td><td>0.040</td><td>0.071</td><td>0.043</td></tr><tr><td>EncDec + BC</td><td><strong>0.044</strong></td><td>0.044</td><td>0.044</td><td><strong>0.060</strong></td><td>0.060</td></tr><tr><td>EncDec + DDPM</td><td>0.052</td><td>0.042</td><td>0.039</td><td>0.071</td><td>0.043</td></tr><tr><td><strong>EncDec + FM</strong></td><td>0.051</td><td><strong>0.041</strong></td><td><strong>0.038</strong></td><td>0.070</td><td><strong>0.041</strong></td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:65.2%"></div></div><div class="slide-counter">15 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="15">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Best-of-K Insight</h2>
+    <p class="slide-intro">Single-sample (K=1) evaluation systematically underrates stochastic policies.</p>
+    <ul class="bullet-list"><li><strong>BC wins at K=1</strong> — deterministic model nails the average mode</li><li><strong>FM/DDPM win at K≥5</strong> — stochastic models cover the full multimodal distribution</li><li>EncDec+FM achieves <strong>~34% improvement</strong> over BC at K=10</li><li>Human manipulation is inherently multimodal — multiple valid ways to complete any task</li></ul>
+    <div class="highlight-box">Takeaway: if you benchmark dexterous policies with K=1 only, you are measuring the wrong thing.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:69.6%"></div></div><div class="slide-counter">16 / 23</div>
+</div>
+
+<div class="slide slide-two-col" data-index="16">
+  <div class="slide-inner">
+    <h2 class="slide-title">What Else Was Ablated</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Goal Conditioning (Inv. Dynamics)</h3><ul class="bullet-list"><li>No goal image: avg 0.045 m, final 0.062 m</li><li>With goal image: avg <strong>0.035 m</strong>, final <strong>0.029 m</strong></li><li>→ 53% reduction in final-position error</li><li>Visual anchor strongly resolves multimodality</li></ul></div>
+      <div class="col"><h3 class="col-title">Prediction Horizon</h3><ul class="bullet-list"><li>H=30 (1s): avg 0.031 m, final 0.049 m</li><li>H=60 (2s): avg 0.045 m, final 0.062 m</li><li>H=90 (3s): avg 0.053 m, final 0.069 m</li><li>~18% error increase per additional second</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:73.9%"></div></div><div class="slide-counter">17 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="17">
+  <div class="slide-inner">
+    <h2 class="slide-title">Scaling & OOD Generalization</h2>
+    
+    <ul class="bullet-list"><li><strong>Data scaling:</strong> monotonic improvement from small fractions → full 829 hrs — no saturation observed</li><li><strong>Model size:</strong> 200M vs 500M parameters — identical performance. Data bottleneck, not model size.</li><li><strong>OOD tasks:</strong> Jigsaw Puzzle +4% degradation vs. baseline; Stamp Paper +156% degradation</li><li>Semantic distance from training distribution predicts OOD error well</li></ul>
+    <div class="highlight-box">More data always helps. Scale up collection, not model size — for now.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:78.3%"></div></div><div class="slide-counter">18 / 23</div>
+</div>
+
+<div class="slide slide-section" data-index="18">
+  <div class="slide-inner centered">
+    <div class="section-label">Implications</div>
+    <h2 class="section-title">Limitations & So What</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:82.6%"></div></div><div class="slide-counter">19 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="19">
+  <div class="slide-inner">
+    <h2 class="slide-title">Limitations</h2>
+    
+    <ul class="bullet-list"><li><strong>Embodiment gap:</strong> human hand trajectories cannot be directly executed on robot hardware</li><li><strong>Scene diversity:</strong> mostly tabletop environments, limited background variation</li><li><strong>Annotation quality:</strong> tracking degrades during heavy occlusion or very fast motions</li><li><strong>No temporal history:</strong> current models see only the current frame, not a sequence</li><li><strong>No object state:</strong> no 6D object pose tracking — only hand motion is annotated</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:87.0%"></div></div><div class="slide-counter">20 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="20">
+  <div class="slide-inner">
+    <h2 class="slide-title">Bridging the Gap: Future Directions</h2>
+    <p class="slide-intro">The paper explicitly calls out the embodiment gap as the key open challenge.</p>
+    <ul class="bullet-list"><li>Co-training with robot data (human pretraining → robot fine-tuning)</li><li>Visual encoder and manipulation prior transfer via RL/IL</li><li>Scene augmentation with generative models</li><li>Egocentric world models — noted as a 'substantial research gap'</li></ul>
+    <div class="highlight-box">For DreamVu: EgoDex pretraining + DreamVu robot data fine-tuning → direct parallel to GR00T workflow.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:91.3%"></div></div><div class="slide-counter">21 / 23</div>
+</div>
+
+<div class="slide slide-bullets" data-index="21">
+  <div class="slide-inner">
+    <h2 class="slide-title">Why This Paper Matters</h2>
+    
+    <ul class="bullet-list"><li><strong>Scale:</strong> 829 hrs / 338K demos / 194 tasks — largest dexterous manipulation dataset by 4–8×</li><li><strong>Paradigm shift:</strong> passive egocentric collection as the analogue of Common Crawl for robotics</li><li><strong>Evaluation insight:</strong> Best-of-K reveals stochastic policies are systematically underrated</li><li><strong>No saturation:</strong> data scaling curves say more collection still pays off</li><li><strong>Foundation model path:</strong> if embodiment gap is bridged, EgoDex = ImageNet for dexterous manipulation</li></ul>
+    <div class="highlight-box">"If the embodiment gap can be bridged, EgoDex could play for robotics the role that ImageNet played for vision or Common Crawl played for language."</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:95.7%"></div></div><div class="slide-counter">22 / 23</div>
+</div>
+
+<div class="slide slide-title" data-index="22">
+  <div class="slide-inner centered">
+    <div class="title-badge">Paper Review</div>
+    <h1 class="title-main">Thank You</h1>
+    <p class="title-sub">Questions?</p>
+    <div class="slide-meta">EgoDex · Hoque et al. · Apple · ICLR 2026 · arxiv 2505.11709</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100.0%"></div></div><div class="slide-counter">23 / 23</div>
+</div>
+</div>
+<div id="nav">
+  <button class="nav-btn" id="btn-prev">← Prev</button>
+  <span id="slide-num">1 / 23</span>
+  <button class="nav-btn" id="btn-next">Next →</button>
+</div>
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+document.getElementById('btn-prev').onclick = () => go(cur - 1);
+document.getElementById('btn-next').onclick = () => go(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// Touch / swipe
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+});
+
+go(0);
+</script>
+</body>
+</html>

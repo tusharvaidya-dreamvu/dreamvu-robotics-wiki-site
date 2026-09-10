@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion Retargeting for Retail Humanoid: Full RL Framework</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --border: #2a2a4a;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --highlight-bg: #1e1b4b;
+  --highlight-border: #7c3aed;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+/* ── Slide container ── */
+#deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(40px);
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev { transform: translateX(-40px); }
+
+.slide-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 48px 64px 40px;
+  overflow: hidden;
+}
+.slide-inner.centered { align-items: center; justify-content: center; text-align: center; }
+
+/* ── Progress ── */
+.progress-bar { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+.slide-counter {
+  position: absolute; bottom: 18px; right: 28px;
+  font-size: 13px; color: var(--text-muted); letter-spacing: 0.05em;
+}
+
+/* ── Nav buttons ── */
+#nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; }
+.nav-btn {
+  padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+#slide-num { padding: 10px 16px; color: var(--text-muted); font-size: 14px; align-self: center; }
+
+/* ── Title slide ── */
+.slide-title-hero { background: radial-gradient(ellipse at 60% 40%, #1e1040 0%, var(--bg) 70%); }
+.title-badge {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  background: rgba(124,58,237,0.2); border: 1px solid var(--accent);
+  font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.title-main { font-size: clamp(28px, 4vw, 54px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
+.title-sub { font-size: clamp(14px, 1.8vw, 20px); color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+.slide-meta { font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ── Section slide ── */
+.slide-section { background: linear-gradient(135deg, #1a0a40 0%, var(--bg) 100%); }
+.section-label {
+  font-size: 13px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+.section-title { font-size: clamp(26px, 3.5vw, 48px); font-weight: 700; }
+
+/* ── Common slide heading ── */
+h2.slide-title { font-size: clamp(18px, 2.2vw, 28px); font-weight: 700; margin-bottom: 16px; color: var(--text); }
+.slide-intro { font-size: clamp(13px, 1.3vw, 15px); color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+
+/* ── Bullets ── */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.bullet-list li {
+  padding: 10px 14px 10px 40px; position: relative;
+  background: var(--surface); border-radius: 8px; border: 1px solid var(--border);
+  font-size: clamp(12px, 1.25vw, 14px); line-height: 1.5; color: var(--text);
+}
+.bullet-list li::before {
+  content: "→"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-weight: 700;
+}
+.bullet-list li strong { color: var(--accent2); }
+.bullet-list li code { background: rgba(124,58,237,0.2); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+.bullet-list.tight { gap: 7px; }
+.bullet-list.tight li { padding: 8px 12px 8px 36px; font-size: clamp(11px, 1.1vw, 13px); }
+
+/* ── Highlight box ── */
+.highlight-box {
+  margin-top: 14px; padding: 12px 16px;
+  background: var(--highlight-bg); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; font-size: clamp(12px, 1.2vw, 14px);
+  color: #c4b5fd; line-height: 1.6;
+}
+.highlight-box.green { border-color: var(--green); color: #86efac; background: #0d2418; }
+.highlight-box.orange { border-color: var(--orange); color: #fcd34d; background: #1c1408; }
+
+/* ── Stats ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 8px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 16px; text-align: center;
+}
+.stat-value { font-size: clamp(20px, 2.5vw, 34px); font-weight: 800; color: var(--accent2); margin-bottom: 6px; }
+.stat-label { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Two column ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; flex: 1; }
+.col { display: flex; flex-direction: column; gap: 10px; }
+.col-title {
+  font-size: 13px; font-weight: 600; color: var(--accent2);
+  padding-bottom: 7px; border-bottom: 1px solid var(--border); margin-bottom: 2px;
+}
+
+/* ── Table ── */
+.table-note { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(11px, 1.1vw, 13px); }
+thead tr { background: var(--accent); }
+thead th { padding: 9px 12px; text-align: left; font-weight: 600; color: white; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 8px 12px; color: var(--text-muted); }
+tbody td strong { color: var(--accent2); font-weight: 600; }
+tbody tr.highlight td { color: var(--text); font-weight: 600; background: rgba(124,58,237,0.1); }
+
+/* ── Pipeline ── */
+.pipeline {
+  display: flex; flex-direction: column; gap: 0;
+  align-items: center; flex: 1; justify-content: center;
+}
+.pipe-step {
+  width: 100%; max-width: 680px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 20px; font-size: clamp(12px, 1.2vw, 14px); text-align: center;
+  color: var(--text);
+}
+.pipe-step.accent { background: rgba(124,58,237,0.15); border-color: var(--accent); color: #c4b5fd; }
+.pipe-step.accent2 { background: rgba(6,182,212,0.1); border-color: var(--accent2); color: #67e8f9; }
+.pipe-arrow { font-size: 18px; color: var(--text-muted); line-height: 1.2; padding: 2px 0; }
+
+/* ── Formula box ── */
+.formula-box {
+  background: #0a0a1f; border: 1px solid var(--accent); border-radius: 8px;
+  padding: 14px 18px; font-family: 'Courier New', monospace;
+  font-size: clamp(11px, 1.15vw, 13px); color: #c4b5fd; line-height: 1.8;
+  margin-top: 12px;
+}
+.formula-box .var { color: var(--accent2); }
+.formula-box .comment { color: var(--text-muted); font-style: italic; }
+
+/* ── Dataset layer cards ── */
+.layer-grid { display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.layer-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 14px; display: flex; gap: 14px; align-items: flex-start;
+}
+.layer-badge {
+  flex-shrink: 0; width: 60px; text-align: center;
+  padding: 6px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.layer-badge.a { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid var(--accent); }
+.layer-badge.b { background: rgba(6,182,212,0.15); color: #67e8f9; border: 1px solid var(--accent2); }
+.layer-badge.c { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid var(--green); }
+.layer-badge.d { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid var(--orange); }
+.layer-content { flex: 1; }
+.layer-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.layer-desc { font-size: clamp(11px, 1.1vw, 12px); color: var(--text-muted); line-height: 1.5; }
+
+/* ── Skill hierarchy ── */
+.skill-hierarchy { font-family: 'Courier New', monospace; font-size: clamp(11px, 1.1vw, 13px); line-height: 1.7; color: var(--text-muted); background: #0a0a1f; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; flex: 1; }
+.skill-hierarchy .hl { color: var(--accent2); font-weight: 600; }
+.skill-hierarchy .sub { color: #c4b5fd; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 0: Title -->
+<div class="slide slide-title-hero" data-index="0">
+  <div class="slide-inner centered">
+    <div class="title-badge">Research Roadmap</div>
+    <h1 class="title-main">Motion Retargeting<br>for Retail Humanoid</h1>
+    <p class="title-sub">Full RL Framework: Data → Retargeting → Physics Cleaning → Policy → Deployment</p>
+    <div class="slide-meta">DreamVu Robotics · Unitree G1 / Fourier GR1 · 2026</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:3.7%"></div></div><div class="slide-counter">1 / 27</div>
+</div>
+
+<!-- 1: The Problem We're Proposing to Solve -->
+<div class="slide" data-index="1">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Problem We're Proposing to Solve</h2>
+    <p class="slide-intro">A retail humanoid must perform tasks humans do naturally — but motion data from humans cannot be directly used to control a robot.</p>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Human Side — What We Have</h3>
+        <ul class="bullet-list tight">
+          <li>Retail workers &amp; shoppers performing natural tasks: reach shelves, grasp products, navigate aisles, place items in basket</li>
+          <li>Video + MoCap data: AMASS, EMHI, SAGA, DreamVu SABER (MediaPipe + HaMeR)</li>
+          <li>Rich, diverse motion — but recorded in human body coordinates, not robot joint space</li>
+          <li>Human body: soft ROM limits, ~24 joints (SMPL), no hard stops</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Robot Side — What We Need</h3>
+        <ul class="bullet-list tight">
+          <li>Unitree G1 performing equivalent retail tasks autonomously and safely</li>
+          <li>43 actuated DoF, hard joint limits, different link proportions</li>
+          <li>Needs joint-angle commands at 30–50 Hz from a closed-loop learned policy</li>
+          <li>Must be physically stable, safe around humans, and sim2real transferable</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box" style="text-align:center; margin-top:16px">
+      Human video / MoCap &nbsp;&nbsp;→&nbsp;&nbsp; <strong style="color:#ef4444; font-size:1.1em">[ ??? ]</strong> &nbsp;&nbsp;→&nbsp;&nbsp; Unitree G1 motor commands
+      <div style="font-size:0.85em; color:#94a3b8; margin-top:6px">This pipeline — from raw human motion to deployable robot policy — is what we are building.</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:7.4%"></div></div><div class="slide-counter">2 / 27</div>
+</div>
+
+<!-- 2: Main Hurdles in Retargeting -->
+<div class="slide" data-index="2">
+  <div class="slide-inner">
+    <h2 class="slide-title">Main Hurdles in Retargeting</h2>
+    <p class="slide-intro">Six technical barriers that make human → robot motion transfer non-trivial:</p>
+    <ul class="bullet-list">
+      <li><strong>Morphological mismatch</strong> — Human and robot have different limb lengths, joint placements, and body proportions. The same joint angles produce completely different end-effector positions on each body — you cannot simply copy angles across.</li>
+      <li><strong>Hard joint limits</strong> — A human's ROM is soft (biology limits motion gradually). A robot's servo has an absolute mechanical stop — exceeding it damages hardware or causes simulation to become unstable.</li>
+      <li><strong>Physics feasibility</strong> — A retargeted pose may look correct but be dynamically unstable: the robot's center of mass (COM) falls outside its support polygon and it topples. Static validity ≠ dynamic stability.</li>
+      <li><strong>Contact artifacts</strong> — Naive IK retargeting introduces foot sliding (planted foot drifts sideways), ground penetration (joints go below floor), and self-collision (arm intersects torso) — none acceptable on real hardware.</li>
+      <li><strong>Sim-to-real gap</strong> — The RL policy trains in GPU simulation (IsaacGym). Real-robot dynamics differ: sensor noise, motor latency, unmodeled floor friction. The policy must be robust enough to transfer zero-shot.</li>
+      <li><strong>Retail-specific constraints</strong> — Variable reach height (0.3–1.8 m), narrow aisles (0.9 m), low-friction tile (μ ≈ 0.4), shelf collision avoidance during arm approach, and graceful failure/recovery — all absent from standard RL benchmarks.</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:11.1%"></div></div><div class="slide-counter">3 / 27</div>
+</div>
+
+<!-- 3: Section — Architecture -->
+<div class="slide slide-section" data-index="3">
+  <div class="slide-inner centered">
+    <div class="section-label">Overview</div>
+    <h2 class="section-title">Conceptual Architecture</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:14.8%"></div></div><div class="slide-counter">4 / 27</div>
+</div>
+
+<!-- 4: Pipeline -->
+<div class="slide" data-index="4">
+  <div class="slide-inner">
+    <h2 class="slide-title">7-Stage End-to-End Pipeline</h2>
+    <div class="pipeline">
+      <div class="pipe-step accent2">Human Demo — Video / MoCap (retail worker / shopper)</div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent" style="text-align:left; padding: 10px 20px;">
+        <span style="font-weight:700">Stage 1 — Pose Estimation</span>
+        <div style="font-size:0.88em; margin-top:5px; line-height:1.6; color:#c4b5fd;">
+          <span style="color:#67e8f9">Body:</span> SMPL-24 (torso + limbs) &nbsp;/&nbsp; SMPL-X (+ 15 finger joints per hand)
+          <br><span style="color:#67e8f9">Hands:</span> MediaPipe Hands (21 landmarks/hand, 30 Hz) &nbsp;+&nbsp; HaMeR / HAWOR (dense mesh + wrist 6-DoF)
+          <br><span style="color:#fcd34d">↳ Open to new unified whole-body + hand + palm methods (e.g. SMPLify-X, ExBody, OSX)</span>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent">Stage 2 — Kinematic Retargeting → Robot-compatible joint trajectory τ̃ᴿ</div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent">Stage 3 — Physics Cleaning → Remove foot slide, ground penetration, self-collision</div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent">Stage 4 — RL Policy Training (DeepMimic / PHC / AMP) in IsaacGym</div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent">Stage 5 — Task Conditioning (navigate → reach → grasp → place)</div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step accent2">Stage 6 — Sim2Real Transfer → Unitree G1 / Fourier GR1</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:18.5%"></div></div><div class="slide-counter">5 / 27</div>
+</div>
+
+<!-- 5: Section — Data -->
+<div class="slide slide-section" data-index="5">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 1 — Data</div>
+    <h2 class="section-title">Source Motion Datasets</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:22.2%"></div></div><div class="slide-counter">6 / 27</div>
+</div>
+
+<!-- 6: Dataset Layers -->
+<div class="slide" data-index="6">
+  <div class="slide-inner">
+    <h2 class="slide-title">Three-Layer Dataset Strategy</h2>
+    <p class="slide-intro">No single retail-specific MoCap dataset exists — compose from four complementary sources, including DreamVu's own SABER data:</p>
+    <div class="layer-grid">
+      <div class="layer-card">
+        <div class="layer-badge a">Layer A</div>
+        <div class="layer-content">
+          <div class="layer-title">AMASS — Locomotion in constrained spaces</div>
+          <div class="layer-desc">Unifies 15 optical MoCap datasets into SMPL framework. 40+ hrs, 300+ subjects, 11,000+ motions. Filter for walking with stops, turns, direction changes — aisle navigation base.</div>
+        </div>
+      </div>
+      <div class="layer-card">
+        <div class="layer-badge b">Layer B</div>
+        <div class="layer-content">
+          <div class="layer-title">EMHI — Egocentric manipulation (shelf reach)</div>
+          <div class="layer-desc">885 sequences, 58 subjects, 39 actions (~28.5 hrs). VR headset + body IMUs, SMPL annotations. First-person perspective precisely matching retail shelf-reach scenarios.</div>
+        </div>
+      </div>
+      <div class="layer-card">
+        <div class="layer-badge c">Layer C</div>
+        <div class="layer-content">
+          <div class="layer-title">SAGA + Motion-X — Whole-body object interaction</div>
+          <div class="layer-desc">Stochastic whole-body grasping + Motion-X. Diversity score 13.17 vs HumanML3D's 9.84. SMPL-X format with hand-level detail. Pick-up, carry, place — product grasping coverage.</div>
+        </div>
+      </div>
+      <div class="layer-card">
+        <div class="layer-badge d">Layer D</div>
+        <div class="layer-content">
+          <div class="layer-title">DreamVu SABER — In-house retail capture (proprietary)</div>
+          <div class="layer-desc">Egocentric + third-person retail videos processed through DreamVu's SABER pipeline. <strong style="color:#fcd34d">MediaPipe Hands</strong> extracts 21-joint hand landmarks (world-space metres, 30 Hz). <strong style="color:#fcd34d">HaMeR (HAWOR)</strong> recovers dense hand mesh + wrist 6-DoF pose, closing the gap MediaPipe leaves on wrist orientation. Only dataset natively aligned to DreamVu's target scenes, shelf geometries, and Unitree G1 embodiment — see <a href="../../experiments/exp-002-mediapipe-hand-retargeting/" style="color:#06b6d4">EXP-002</a>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:25.9%"></div></div><div class="slide-counter">7 / 27</div>
+</div>
+
+<!-- 7: Retail Annotation -->
+<div class="slide" data-index="7">
+  <div class="slide-inner">
+    <h2 class="slide-title">Retail-Specific Annotation Strategy</h2>
+    <p class="slide-intro">Segment clips by action primitive using text labels (HumanML3D text-motion pairing framework):</p>
+    <ul class="bullet-list">
+      <li><strong>Walk toward shelf</strong> — aisle navigation, stopping, turning in ~0.9–1.2 m wide corridors</li>
+      <li><strong>Reach arm up to shelf</strong> — upper-body extension to 1.8 m height, balance on low-friction tile (μ ≈ 0.4)</li>
+      <li><strong>Grasp object at chest height</strong> — mid-shelf reach, fine motor contact</li>
+      <li><strong>Place item in basket / cart</strong> — transfer motion, hold with grasp state</li>
+      <li><strong>Squat to low shelf</strong> — whole-body crouch to 0.3 m, then recover and walk</li>
+      <li><strong>Lateral step</strong> — sideways movement in narrow aisles without full turn</li>
+    </ul>
+    <div class="highlight-box">Key insight: shelf height range 0.3 m → 1.8 m drives the <strong>full upper-body ROM requirement</strong> — more demanding than most RL locomotion benchmarks.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:29.6%"></div></div><div class="slide-counter">8 / 27</div>
+</div>
+
+<!-- 8: Section — Retargeting -->
+<div class="slide slide-section" data-index="8">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 2 — Retargeting</div>
+    <h2 class="section-title">Kinematic Retargeting</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:33.3%"></div></div><div class="slide-counter">9 / 27</div>
+</div>
+
+<!-- 9: Embodiment Gap -->
+<div class="slide" data-index="9">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Embodiment Gap</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Source — SMPL Human</h3>
+        <ul class="bullet-list tight">
+          <li>24 joints, human proportions</li>
+          <li>No joint limits (ROM only)</li>
+          <li>~1.75 m, varying limb ratios</li>
+          <li>Natural mass distribution</li>
+          <li>Hands: wrist only in SMPL-24</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Target — Unitree G1 (43-DoF)</h3>
+        <ul class="bullet-list tight">
+          <li>43 actuated DoF, hard joint limits</li>
+          <li>Different link length ratios</li>
+          <li>Smaller feet → tighter balance polygon</li>
+          <li>Actuator torque limits per joint</li>
+          <li>Hands: optional dexterous add-on</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box orange">A motion valid for a human may be <strong>unstable or torque-infeasible</strong> for the robot — foot slide, ground penetration, self-penetration are common artifacts that must be corrected <em>before</em> RL training.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:37.0%"></div></div><div class="slide-counter">10 / 27</div>
+</div>
+
+<!-- 10: IK Formulation -->
+<div class="slide" data-index="10">
+  <div class="slide-inner">
+    <h2 class="slide-title">IK-Based Retargeting Formulation</h2>
+    <p class="slide-intro">Per-frame optimization over robot joint space, minimizing weighted keypoint error:</p>
+    <div class="formula-box">
+<span class="var">q̃ᵗᴿ</span> = argmin  Σ<sub>k∈K</sub> wₖ ‖ pᵏᴿ(qᴿ) − α · pᵏᴴ(qᵗᴴ) ‖²
+         <span class="comment">+ λₛ ‖q̇ᴿ‖²          (smoothness)</span>
+         <span class="comment">+ λ_c φ_contact(qᴿ)   (foot contact consistency)</span>
+
+subject to  qᴿ ∈ C_R  (joint limits + self-collision constraints)
+    </div>
+    <ul class="bullet-list tight" style="margin-top:12px">
+      <li><strong>K</strong> = key-point set: wrists, ankles, head, COM — wrists weighted highest for retail reach accuracy</li>
+      <li><strong>α</strong> = proportional scale factor between human and robot link lengths</li>
+      <li><strong>φ_contact</strong> = contact consistency — foot on ground ↔ human foot on ground</li>
+      <li><strong>C_R</strong> = robot joint limits + self-collision mesh constraints</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:40.7%"></div></div><div class="slide-counter">11 / 27</div>
+</div>
+
+<!-- 11: GCN + ReActor -->
+<div class="slide" data-index="11">
+  <div class="slide-inner">
+    <h2 class="slide-title">Learned Retargeting Approaches</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">GCN Retargeting Network</h3>
+        <ul class="bullet-list tight">
+          <li>Graph conv. network learns SMPL → robot joint mapping</li>
+          <li>Enables upper-body reach while lower body maintains balance</li>
+          <li>Generalizes across clip diversity better than per-frame IK</li>
+          <li>Creates motion dataset for RL imitation policy</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">ReActor / "Retargeting Matters"</h3>
+        <ul class="bullet-list tight">
+          <li>Closes the retarget→RL loop: retarget, simulate, measure artifact severity</li>
+          <li>Re-optimizes retargeting itself before RL training</li>
+          <li>Motion Difficulty Score quantifies tracking hardness per clip</li>
+          <li>Enables curriculum ordering — easy shelf heights first</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box">Standard practice leaves retargeting artifacts in the reference and lets RL correct them — <strong>ReActor approach is cleaner</strong>: fix artifacts upstream, then train RL on physically feasible references.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:44.4%"></div></div><div class="slide-counter">12 / 27</div>
+</div>
+
+<!-- 12: Section — Physics Cleaning -->
+<div class="slide slide-section" data-index="12">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 3 — Physics</div>
+    <h2 class="section-title">Physics Cleaning</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:48.1%"></div></div><div class="slide-counter">13 / 27</div>
+</div>
+
+<!-- 13: Pre-RL Processing -->
+<div class="slide" data-index="13">
+  <div class="slide-inner">
+    <h2 class="slide-title">Pre-RL Feasibility Filter</h2>
+    <p class="slide-intro">Run retargeted trajectory τ̃ᴿ through four processing steps before any RL training:</p>
+    <ul class="bullet-list">
+      <li><strong>Foot contact annotation</strong> — classify each frame: left contact, right contact, double stance, flight. Retail motion is mostly double-support with occasional single-support during turns and lateral steps.</li>
+      <li><strong>Ground penetration removal</strong> — project any joint position below floor plane back to floor + ε. Critical for tile floors with no compliance.</li>
+      <li><strong>Self-collision resolution</strong> — run SMPL SDF or robot URDF collision mesh checks; re-solve IK where penetration detected. Arm-torso intersection common during full-height shelf reach.</li>
+      <li><strong>Motion Difficulty Score</strong> — quantifies how hard each trajectory is for RL imitation. Higher score = higher expected tracking error. Use to filter or curriculum-order retail clips before training.</li>
+    </ul>
+    <div class="highlight-box green">Output: a clean reference dataset τ̃ᴿ_clean where every frame is physically feasible — RL policy only needs to learn tracking, not physics correction.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:51.9%"></div></div><div class="slide-counter">14 / 27</div>
+</div>
+
+<!-- 14: Section — RL Policy -->
+<div class="slide slide-section" data-index="14">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 4 — RL Policy</div>
+    <h2 class="section-title">MDP Formulation</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:55.6%"></div></div><div class="slide-counter">15 / 27</div>
+</div>
+
+<!-- 15: State Space -->
+<div class="slide" data-index="15">
+  <div class="slide-inner">
+    <h2 class="slide-title">State Space — Observation Vector (~440 dims)</h2>
+    <div class="three-col">
+      <div class="col">
+        <h3 class="col-title">Proprioception</h3>
+        <ul class="bullet-list tight">
+          <li>Joint positions q ∈ ℝ⁴³</li>
+          <li>Joint velocities q̇ ∈ ℝ⁴³</li>
+          <li>Root orientation (quaternion)</li>
+          <li>Root angular velocity</li>
+          <li>Foot contact flags ∈ {0,1}⁴</li>
+          <li>Action history (last 6 steps)</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Reference Tracking</h3>
+        <ul class="bullet-list tight">
+          <li>Phase variable φ ∈ [0,1]</li>
+          <li>Next k=5 reference keyframes (look-ahead)</li>
+          <li>Target keypoint positions in root frame</li>
+          <li>Reference velocity targets</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Task Context (Retail)</h3>
+        <ul class="bullet-list tight">
+          <li>Target shelf height h_target ∈ ℝ</li>
+          <li>End-effector goal p_goal ∈ ℝ³</li>
+          <li>Object-in-hand flag</li>
+          <li>Nearest shelf distance</li>
+          <li>Aisle width estimate</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box">Task context distinguishes retail from generic locomotion benchmarks — the policy must condition on <strong>shelf height and spatial clearance</strong> at inference time.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:59.3%"></div></div><div class="slide-counter">16 / 27</div>
+</div>
+
+<!-- 16: Action Space -->
+<div class="slide" data-index="16">
+  <div class="slide-inner">
+    <h2 class="slide-title">Action Space — PD Target Joint Positions</h2>
+    <p class="slide-intro">Output: desired joint positions, converted to torques via PD controller on real hardware:</p>
+    <div class="formula-box">
+<span class="var">aₜ ∈ ℝⁿᴰᵒᶠ</span>   (43 dims for Unitree G1)
+
+Torque:  τ = kₚ(aₜ − qₜ) − k_d q̇ₜ
+    </div>
+    <ul class="bullet-list" style="margin-top:12px">
+      <li><strong>Why PD targets, not raw torques:</strong> high-level actions → joint-level torques through whole-body control, reducing RL dimensionality and addressing sim-to-real via safe trajectory generation</li>
+      <li><strong>kₚ and k_d tuning:</strong> matched to real robot servo gains — critical for sim-to-real transfer</li>
+      <li><strong>Action repeat:</strong> policy runs at 30–50 Hz; PD controller runs at hardware rate (1000 Hz)</li>
+      <li><strong>Action clipping:</strong> ±0.5 rad delta from current pose prevents large discontinuous jumps</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:63.0%"></div></div><div class="slide-counter">17 / 27</div>
+</div>
+
+<!-- 17: Reward Function -->
+<div class="slide" data-index="17">
+  <div class="slide-inner">
+    <h2 class="slide-title">Reward Function — Three Components</h2>
+    <div class="formula-box">
+rₜ = w_imit · r_imit  +  w_task · r_task  +  w_reg · r_reg
+
+<span class="comment">Imitation reward (motion style fidelity):</span>
+<span class="var">r_imit</span> = exp(−Σₖ αₖ ‖pᵏᴿ − p̃ᵏᴿ‖²) · exp(−β‖q̇ᴿ − q̃̇ᴿ‖²)
+         <span class="comment">↑ wrist αₖ weighted 3× higher for retail reach accuracy</span>
+
+<span class="comment">Regularization penalty:</span>
+<span class="var">r_reg</span>  = −λₑ‖τ‖²  −  λⱼ|q̈|  −  λ_f · r_foot_slide
+    </div>
+    <div class="highlight-box">DeepMimic-style composition: imitation keeps the motion human-like, task reward drives goal completion, regularization prevents energy-wasteful or jerky behavior on real hardware.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:66.7%"></div></div><div class="slide-counter">18 / 27</div>
+</div>
+
+<!-- 18: Retail Sub-Rewards -->
+<div class="slide" data-index="18">
+  <div class="slide-inner">
+    <h2 class="slide-title">Retail Task Sub-Rewards (r_task)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Sub-reward</th><th>Formula</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><strong>r_reach</strong></td><td>−‖p_wrist − p_target‖</td><td>End-effector accuracy to product</td></tr>
+          <tr><td><strong>r_grasp</strong></td><td>binary contact signal</td><td>Finger-object contact success</td></tr>
+          <tr><td><strong>r_nav</strong></td><td>−‖x_robot − x_goal‖</td><td>Aisle navigation to target shelf</td></tr>
+          <tr><td><strong>r_upright</strong></td><td>cos(θ_torso)</td><td>Stability during reach — don't lean into shelf</td></tr>
+          <tr><td><strong>r_shelf_clear</strong></td><td>−𝟙[collision with shelf]</td><td>Don't sweep adjacent products off shelf</td></tr>
+          <tr class="highlight"><td><strong>r_task (total)</strong></td><td>weighted sum above</td><td>Retail-specific goal completion</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="highlight-box orange"><strong>r_shelf_clear</strong> is unique to retail — the shaped collision penalty must apply during the <em>reach phase</em>, not just on final state, or the arm will sweep items during approach.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:70.4%"></div></div><div class="slide-counter">19 / 27</div>
+</div>
+
+<!-- 19: Algorithm PPO + Teacher-Student -->
+<div class="slide" data-index="19">
+  <div class="slide-inner">
+    <h2 class="slide-title">Algorithm: PPO + Privileged Teacher-Student</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Teacher Policy (Training)</h3>
+        <ul class="bullet-list tight">
+          <li>Full privileged state — known shelf map + object positions</li>
+          <li>PPO with GAE, 4096+ parallel envs in IsaacGym</li>
+          <li>Reference State Initialization (RSI) — start episodes from mid-skill states</li>
+          <li>Delta action space relative to reference trajectory</li>
+          <li>VIRAL architecture: long-horizon loco-manipulation</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Student Policy (Deployment)</h3>
+        <ul class="bullet-list tight">
+          <li>Depth image + proprioception only (real robot input)</li>
+          <li>Distilled from teacher via DAgger / behavior cloning</li>
+          <li>Zero-shot transfer to real hardware</li>
+          <li>VIRAL achieves 54 continuous loco-manipulation cycles zero-shot</li>
+          <li>Diverse spatial + appearance variations covered</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box green">Teacher knows everything; student knows only what the robot can sense. Gap is closed by large-scale simulation diversity — not domain randomization alone.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:74.1%"></div></div><div class="slide-counter">20 / 27</div>
+</div>
+
+<!-- 20: Section — Simulator -->
+<div class="slide slide-section" data-index="20">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 5 — Simulation</div>
+    <h2 class="section-title">Simulator Stack</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:77.8%"></div></div><div class="slide-counter">21 / 27</div>
+</div>
+
+<!-- 21: Simulator Details -->
+<div class="slide" data-index="21">
+  <div class="slide-inner">
+    <h2 class="slide-title">Stack + Retail Scene Specifications</h2>
+    <div class="table-wrap" style="margin-bottom:14px">
+      <table>
+        <thead><tr><th>Layer</th><th>Tool</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Physics</strong></td><td>IsaacGym / Isaac Lab</td><td>GPU-parallel RL training (4096+ envs)</td></tr>
+          <tr><td><strong>Robot URDF</strong></td><td>Unitree G1 / Fourier GR1</td><td>Humanoid model with optional hand DoFs</td></tr>
+          <tr><td><strong>Retail Scene</strong></td><td>Custom USD scene</td><td>Shelves, products, floor friction variation</td></tr>
+          <tr><td><strong>Cross-validate</strong></td><td>MuJoCo</td><td>Closer dynamics to real — sim2sim transfer check</td></tr>
+          <tr><td><strong>Deployment</strong></td><td>Unitree SDK / ROS2</td><td>Real robot execution</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="bullet-list tight">
+      <li><strong>Shelf height range:</strong> 0.3 m (bottom) → 1.8 m (top) — drives full upper-body ROM requirement</li>
+      <li><strong>Aisle width:</strong> 0.9–1.2 m — foot placement and lateral stepping matter</li>
+      <li><strong>Floor friction:</strong> μ ≈ 0.4 (low-friction tile) — harder than typical outdoor benchmarks</li>
+      <li><strong>Products:</strong> rigid bodies, mass 0.1–2 kg, varied grasp affordances, randomized positions</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:81.5%"></div></div><div class="slide-counter">22 / 27</div>
+</div>
+
+<!-- 22: Section — Skills -->
+<div class="slide slide-section" data-index="22">
+  <div class="slide-inner centered">
+    <div class="section-label">Stage 6 — Skill Decomposition</div>
+    <h2 class="section-title">Hierarchical Skill Library</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:85.2%"></div></div><div class="slide-counter">23 / 27</div>
+</div>
+
+<!-- 23: Skill Library -->
+<div class="slide" data-index="23">
+  <div class="slide-inner">
+    <h2 class="slide-title">Skill Decomposition for Retail</h2>
+    <div class="two-col">
+      <div class="col">
+        <div class="skill-hierarchy">
+<span class="hl">High-Level Planner</span>
+(STRIPS / LLM task planner)
+          ↓
+<span class="hl">Skill Library</span>
+  <span class="sub">① Walk-to-shelf</span>     (nav primitive)
+  <span class="sub">② Reach-low</span>         (squat + arm extend)
+  <span class="sub">③ Reach-mid</span>         (stand + arm extend)
+  <span class="sub">④ Reach-high</span>        (tiptoe + arm raise)
+  <span class="sub">⑤ Grasp-product</span>     (finger closure)
+  <span class="sub">⑥ Place-in-basket</span>   (transfer + release)
+  <span class="sub">⑦ Lateral-step</span>      (narrow aisle)
+        </div>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Training Strategy</h3>
+        <ul class="bullet-list tight">
+          <li>Each primitive trained separately, then blended</li>
+          <li><strong>HOMIE framework:</strong> locomotion that enables walking + squatting while robust to upper-body arm disturbances</li>
+          <li><strong>Curriculum learning:</strong> easy shelf heights first (mid), then extremes (low squat, high tiptoe)</li>
+          <li><strong>RSI:</strong> start episodes from mid-skill states — not just standing — to learn transitions</li>
+          <li><strong>Hardest transition:</strong> walk → decelerate → squat/reach → grasp → stand → walk</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:88.9%"></div></div><div class="slide-counter">24 / 27</div>
+</div>
+
+<!-- 24: Section — Papers -->
+<div class="slide slide-section" data-index="24">
+  <div class="slide-inner centered">
+    <div class="section-label">Reference</div>
+    <h2 class="section-title">Key Papers to Build On</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:92.6%"></div></div><div class="slide-counter">25 / 27</div>
+</div>
+
+<!-- 25: Papers Table -->
+<div class="slide" data-index="25">
+  <div class="slide-inner">
+    <h2 class="slide-title">Reference Papers</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Paper</th><th>What it solves for you</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DeepMimic</strong> (Peng et al. 2018)</td><td>Foundational imitation reward formulation</td></tr>
+          <tr><td><strong>PHC</strong> (Luo et al. 2023)</td><td>Scales to full AMASS without residual forces</td></tr>
+          <tr><td><strong>AMP</strong> (Peng et al. 2021)</td><td>Adversarial style reward, avoids manual reward shaping</td></tr>
+          <tr><td><strong>ReActor</strong> (arxiv 2605.06593)</td><td>Physics-aware retargeting, closes retarget→RL loop</td></tr>
+          <tr><td><strong>Retargeting Matters</strong> (Stanford, arxiv 2510.02252)</td><td>General retargeting artifact analysis</td></tr>
+          <tr><td><strong>VIRAL</strong> (He et al. 2025)</td><td>Teacher-student sim2real for loco-manipulation (54 cycles)</td></tr>
+          <tr><td><strong>EMP</strong> (Xu et al.)</td><td>Standing upper-body imitation — directly retail-relevant</td></tr>
+          <tr class="highlight"><td><strong>GenMimic</strong> (arxiv 2512.05094)</td><td>Video → retarget → RL pipeline end-to-end</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="highlight-box">Recommended pipeline: <strong>AMASS + SAGA → GCN retargeting → PHC-style RL in IsaacGym → teacher-student distillation → Unitree G1</strong>, with retail skill decomposition at the top layer.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:96.3%"></div></div><div class="slide-counter">26 / 27</div>
+</div>
+
+<!-- 26: Three Hard Problems -->
+<div class="slide" data-index="26">
+  <div class="slide-inner">
+    <h2 class="slide-title">Three Hard Problems Specific to Retail</h2>
+    <ul class="bullet-list">
+      <li>
+        <strong>Variable reach height with balance</strong> — Reaching a 1.8 m shelf while standing on low-friction tile (μ ≈ 0.4) is dynamically very different from reaching a 0.5 m shelf while squatting. Most RL benchmarks don't cover this height range under simultaneous locomotion perturbation. Requires dedicated curriculum across the full 0.3–1.8 m range.
+      </li>
+      <li>
+        <strong>Shelf collision avoidance during manipulation</strong> — The arm must not sweep products off adjacent shelves during the reach approach. Requires a shaped penalty active during the reach phase trajectory, not just at final-state success. Standard motion imitation RL misses this without explicit shelf geometry in the reward.
+      </li>
+      <li>
+        <strong>Graceful failure and replanning</strong> — If a grasp fails (product slides, hand misaligns), the policy must back off and retry without falling. Standard motion imitation RL has no recovery behavior; requires a task-level recovery policy layer or an explicit retry skill in the hierarchy.
+      </li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100.0%"></div></div><div class="slide-counter">27 / 27</div>
+</div>
+
+</div><!-- /deck -->
+
+<div id="nav">
+  <button class="nav-btn" id="btn-prev">← Prev</button>
+  <span id="slide-num">1 / 25</span>
+  <button class="nav-btn" id="btn-next">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+document.getElementById('btn-prev').onclick = () => go(cur - 1);
+document.getElementById('btn-next').onclick = () => go(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+});
+
+go(0);
+</script>
+</body>
+</html>

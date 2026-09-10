@@ -1,0 +1,2210 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Experiment tracking, research, and architecture for DreamVu">
+      
+      
+      
+        <link rel="canonical" href="https://tusharvaidya-dreamvu.github.io/dreamvu-robotics-wiki-site/experiments/exp-006-splat-blender-usd-scene/">
+      
+      
+        <link rel="prev" href="../exp-005-multicam-gaussian-splatting/">
+      
+      
+        <link rel="next" href="../_template/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>EXP-006: Splat → Blender → USD Scene - DreamVu Project Wiki</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exp-006-supersplat-crop-blender-usd-scene-assembly-flower-pot-on-table" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DreamVu Project Wiki" class="md-header__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DreamVu Project Wiki
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              EXP-006: Splat → Blender → USD Scene
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Experiments
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../theory/" class="md-tabs__link">
+          
+  
+  
+  Theory & Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decisions/" class="md-tabs__link">
+          
+  
+  
+  Decision Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../presentations/" class="md-tabs__link">
+          
+  
+  
+  Presentations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tags/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tags
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DreamVu Project Wiki" class="md-nav__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DreamVu Project Wiki
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-001-groot-n16-isaac-robobench/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-001: GR00T N1.6 Isaac Robobench
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-002-mediapipe-hand-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-002: MediaPipe → Unitree G1
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-003-saber-gt003-groot-finetune/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-003: SABER GT003 → GR00T N1.7
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-005-multicam-gaussian-splatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-005: Multi-Cam Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-006: Splat → Blender → USD Scene
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-006: Splat → Blender → USD Scene
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-determining-up-ransac-plane-fit-not-eyeballing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Determining "up" — RANSAC plane fit, not eyeballing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-first-geometry-attempt-poisson-reconstruction-of-the-whole-crop-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. First geometry attempt: Poisson reconstruction of the whole crop — failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fix-build-a-clean-slab-directly-from-the-ransac-plane-inliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Fix: build a clean slab directly from the RANSAC plane inliers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scene-assembly-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scene assembly + placement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-fully-automatic-table-chairs-detection-no-supersplat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Fully automatic table + chairs detection (no SuperSplat)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fully-automatic-pipeline-5-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fully automatic pipeline (§5) — results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template (copy me)
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory & Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory & Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decision Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Presentations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Presentations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting — RL Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/groot-n1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GR00T N1 — Architecture & N1.6 vs N1.7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-determining-up-ransac-plane-fit-not-eyeballing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Determining "up" — RANSAC plane fit, not eyeballing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-first-geometry-attempt-poisson-reconstruction-of-the-whole-crop-failed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. First geometry attempt: Poisson reconstruction of the whole crop — failed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fix-build-a-clean-slab-directly-from-the-ransac-plane-inliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Fix: build a clean slab directly from the RANSAC plane inliers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scene-assembly-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Scene assembly + placement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-fully-automatic-table-chairs-detection-no-supersplat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Fully automatic table + chairs detection (no SuperSplat)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fully-automatic-pipeline-5-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fully automatic pipeline (§5) — results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">blender</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">experiment</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">gaussian-splatting</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">isaac-sim</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">simulation-setup</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">usd</span>
+      
+    
+  </nav>
+
+
+  
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/edit/main/docs/experiments/exp-006-splat-blender-usd-scene.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/raw/main/docs/experiments/exp-006-splat-blender-usd-scene.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="exp-006-supersplat-crop-blender-usd-scene-assembly-flower-pot-on-table">EXP-006: SuperSplat Crop → Blender → USD Scene Assembly (Flower Pot on Table)<a class="headerlink" href="#exp-006-supersplat-crop-blender-usd-scene-assembly-flower-pot-on-table" title="Permanent link">&para;</a></h1>
+<p><strong>Owner:</strong> Tushar Vaidya
+<strong>Start Date:</strong> 2026-09-10
+<strong>Last Updated:</strong> 2026-09-10
+<strong>Status:</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 2.03v2.02c4.39.54 7.5 4.53 6.96 8.92-.46 3.64-3.32 6.53-6.96 6.96v2c5.5-.55 9.5-5.43 8.95-10.93-.45-4.75-4.22-8.5-8.95-8.97m-2 .03c-1.95.19-3.81.94-5.33 2.2L7.1 5.74c1.12-.9 2.47-1.48 3.9-1.68zM4.26 5.67A9.9 9.9 0 0 0 2.05 11h2c.19-1.42.75-2.77 1.64-3.9zM2.06 13c.2 1.96.97 3.81 2.21 5.33l1.42-1.43A8 8 0 0 1 4.06 13zm5.04 5.37-1.43 1.37A10 10 0 0 0 11 22v-2a8 8 0 0 1-3.9-1.63M12.5 7v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg></span> Active — manual-crop pipeline complete; fully automatic table+chairs detection (no SuperSplat, no manual selection) working end-to-end, table+chairs+flower-pot all present in the final USD, at the scene's real internal scale</p>
+<hr />
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Take a 3D Gaussian Splat reconstructed in <a href="../exp-005-multicam-gaussian-splatting/">EXP-005</a> (<code>cam4</code> single-camera pipeline), isolate a table of interest, bring it into Blender, correctly determine "which way is up," place an object (a flower pot) on the table surface, and export the combined scene as USD — targeting Isaac Sim / robot-sim asset workflows. Two variants were built: first a manual SuperSplat box-crop, then a fully automatic pipeline operating directly on the original uncropped trained splat.</p>
+<hr />
+<h2 id="hypothesis">Hypothesis<a class="headerlink" href="#hypothesis" title="Permanent link">&para;</a></h2>
+<ol>
+<li>A splat crop exported from SuperSplat can be converted into usable Blender/USD geometry via Poisson surface reconstruction directly on the Gaussian point cloud.</li>
+<li>The crop's up-axis and table-surface location can be recovered reliably via RANSAC plane fitting, without needing to eyeball orthographic renders.</li>
+<li>The table (and its surrounding chairs) can be found and cropped automatically, directly from the full uncropped trained splat, without any manual SuperSplat selection — using only the scene's own geometry and the known camera trajectory as priors.</li>
+</ol>
+<p>(1) turned out to be false in an interesting way for a room-scale crop — see <a href="#results">Results</a>. (3) turned out to be true, but required abandoning several purely-statistical classification heuristics in favor of a direct visual check — see <a href="#5-fully-automatic-table--chairs-detection-no-supersplat">Method §5</a>.</p>
+<hr />
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>SuperSplat: select box around table → crop → export .ply
+        ↓
+splat-edited.ply (132,900 Gaussians, INRIA/gsplat PLY format)
+        ↓
+Gaussian → point cloud + per-Gaussian normal (shortest scale axis, in world frame)
+        ↓
+RANSAC plane fit → identifies "up" axis + tabletop surface
+        ↓
+Table geometry (mesh or slab) + procedural flower pot, placed on the fitted plane
+        ↓
+Blender scene assembly → USD export (bpy.ops.wm.usd_export)
+</code></pre></div>
+<p><strong>Key constraint discovered up front:</strong> SuperSplat's box-crop export <strong>renormalizes the selection into a canonical <code>[-1, 1]</code> unit cube</strong> with no recoverable transform back to the original splat's world/metric scale. This has no effect on <em>shape</em> or <em>orientation</em> recovery, but it means the exported geometry is dimensionless — real-world scale has to be reintroduced manually downstream (e.g. in Isaac Sim, by comparing to a known object/table dimension).</p>
+<hr />
+<h2 id="method">Method<a class="headerlink" href="#method" title="Permanent link">&para;</a></h2>
+<h3 id="1-determining-up-ransac-plane-fit-not-eyeballing">1. Determining "up" — RANSAC plane fit, not eyeballing<a class="headerlink" href="#1-determining-up-ransac-plane-fit-not-eyeballing" title="Permanent link">&para;</a></h3>
+<p>The first instinct — rendering three orthographic views (<code>+X</code>, <code>+Y</code>, <code>+Z</code>) of a candidate mesh and eyeballing which one looks like a tabletop — wasn't reliable enough on a noisy reconstruction to be confident. Instead, <code>open3d.geometry.PointCloud.segment_plane</code> was run directly on the cropped Gaussian centers:</p>
+<div class="highlight"><pre><span></span><code><span class="n">plane_model</span><span class="p">,</span> <span class="n">inliers</span> <span class="o">=</span> <span class="n">pcd</span><span class="o">.</span><span class="n">segment_plane</span><span class="p">(</span><span class="n">distance_threshold</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ransac_n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_iterations</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+</code></pre></div>
+<p>Result:</p>
+<div class="highlight"><pre><span></span><code>plane normal:     [-0.0024, 0.0175, 0.9998]   ≈ (0, 0, 1) — Z is up
+plane offset d:    -0.6048
+inliers:           14,941 / 132,900  (11.2%)
+inlier bbox:       X [-1.000, 1.000]   Y [-1.000, 1.000]   Z [0.574, 0.637]
+inlier centroid:   [0.258, 0.217, 0.602]
+other-points side: 81.2% lie on the negative-normal side of the plane
+</code></pre></div>
+<p>This is clean, non-eyeballed evidence: the inlier set is a broad, thin (0.063-unit-thick) disk spanning almost the <em>entire</em> X/Y footprint of the crop — exactly the shape of a tabletop — while 81% of everything else (floor, chairs, room) sits below it along the fitted normal. Z-up was confirmed, the tabletop plane was located, and the "open" placement side (positive-Z) was identified with actual evidence rather than a visual guess.</p>
+<h3 id="2-first-geometry-attempt-poisson-reconstruction-of-the-whole-crop-failed">2. First geometry attempt: Poisson reconstruction of the whole crop — failed<a class="headerlink" href="#2-first-geometry-attempt-poisson-reconstruction-of-the-whole-crop-failed" title="Permanent link">&para;</a></h3>
+<p>The initial approach treated every kept Gaussian (opacity &gt; 0.15, flatness &lt; 0.5 — disk-like Gaussians only) as an oriented point (using the Gaussian's own shortest-scale axis as its normal, rather than blind kNN normal estimation) and ran Poisson reconstruction over the <em>entire</em> crop:</p>
+<div class="highlight"><pre><span></span><code><span class="n">mesh</span><span class="p">,</span> <span class="n">densities</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">TriangleMesh</span><span class="o">.</span><span class="n">create_from_point_cloud_poisson</span><span class="p">(</span><span class="n">pcd</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+</code></pre></div>
+<p>Result: 381,736 vertices / 750,061 triangles — but visually, a chaotic, spiky, camouflage-like blob (table, chairs, floor and room all fused into one watertight surface by Poisson's global reconstruction, which doesn't distinguish "this cluster is a flat table" from "this cluster is clutter"). See the first figure below. Reconstructing an entire cluttered, sparse, room-scale point cloud into one watertight surface is the wrong tool for this — Poisson works well on a single coherent object with enough sample density, not a heterogeneous room scene.</p>
+<figure>
+<p><img alt="Poisson reconstruction of the whole crop — chaotic blob" src="../images/exp-006-splat-blender-usd-scene/poisson-blob-before.jpg" />
+  </p>
+<figcaption>Poisson surface reconstruction (depth=9) over the entire cropped point cloud. Table, chairs, and floor are fused into one spiky, unusable watertight blob — global reconstruction is the wrong tool for a heterogeneous room-scale crop.</figcaption>
+</figure>
+<h3 id="3-fix-build-a-clean-slab-directly-from-the-ransac-plane-inliers">3. Fix: build a clean slab directly from the RANSAC plane inliers<a class="headerlink" href="#3-fix-build-a-clean-slab-directly-from-the-ransac-plane-inliers" title="Permanent link">&para;</a></h3>
+<p>Rather than reconstructing everything, the already-identified plane-inlier points (Step 1) were used directly: projected into the plane's local 2D basis, a convex hull was computed (<code>scipy.spatial.ConvexHull</code>), shrunk 3% inward to avoid boundary outliers, then extruded into a thin (0.02-unit) solid slab (fan-triangulated top/bottom caps + side walls), with vertex colors nearest-neighbor-sampled from the original Gaussian colors.</p>
+<p>Result: a clean 46-vertex / 88-triangle solid table-top proxy — accurately shaped (the crop's XY footprint was itself roughly diamond/square, so the hull comes out as a rotated quad), correctly oriented, and immediately usable in Blender/USD. This is the approach that should be used going forward for any single-planar-surface object extracted from a splat crop; full Poisson reconstruction should be reserved for genuinely non-planar single objects.</p>
+<h3 id="4-scene-assembly-placement">4. Scene assembly + placement<a class="headerlink" href="#4-scene-assembly-placement" title="Permanent link">&para;</a></h3>
+<p>A procedural flower pot (cone-shaped pot body + soil disk + 3 stem-and-petal clusters, all built with Blender primitives — no external asset library was available in this environment) was placed with its base flush against the fitted plane, at a world XY position offset slightly from the inlier centroid for a more natural composition, oriented so its local up-axis matches the fitted plane normal (<code>mathutils.Vector.to_track_quat</code>). Lighting (sun + world ambient) and a camera were added, the scene rendered for visual verification, then exported via <code>bpy.ops.wm.usd_export</code>.</p>
+<figure>
+<p><img alt="Clean slab with flower pot placed" src="../images/exp-006-splat-blender-usd-scene/slab-flowerpot-after.jpg" />
+  </p>
+<figcaption>Final scene: table proxy built from RANSAC plane-inlier points only, flower pot placed flush on the surface with correct up-orientation. Compare to the Poisson blob above — same source crop, same plane fit, dramatically cleaner result.</figcaption>
+</figure>
+<h3 id="5-fully-automatic-table-chairs-detection-no-supersplat">5. Fully automatic table + chairs detection (no SuperSplat)<a class="headerlink" href="#5-fully-automatic-table-chairs-detection-no-supersplat" title="Permanent link">&para;</a></h3>
+<p>A follow-up removed the manual SuperSplat box-select entirely, operating directly on the full trained <code>export/splat.ply</code> (336,682 Gaussians, un-cropped, un-renormalized — still in nerfstudio's own consistent internal scale). This also incidentally fixes the "no recoverable scale" caveat above: since nothing gets independently renormalized per-crop, the floor, chairs, table, and camera trajectory all stay in one consistent coordinate system.</p>
+<p><strong>Step 1 — "up" from the camera trajectory, not from plane RANSAC.</strong> A person walking a rig varies X/Y a lot but height very little. Loading the 121 COLMAP camera centers (transformed into the splat's frame via nerfstudio's <code>dataparser_transforms.json</code>) and taking the <em>smallest-variance</em> principal axis of their positions gives the vertical axis directly and deterministically — no RANSAC stochasticity involved. Camera height varied only ±0.008 units across the whole 121-frame walk while X/Y ranged ±0.84/±0.99 — a strong confirmation the recovered axis is correct.</p>
+<p><strong>Step 2 — floor/chair/table height peaks, found the wrong way first.</strong> Projecting all Gaussians onto that vertical axis and histogramming produced three clear height peaks. Two different automatic classification heuristics were tried to label them (footprint size via bounding-box area, then via true convex-hull area; "floor = biggest footprint" and separately "floor = furthest below mean camera height") — <strong>both gave internally-contradictory or implausible answers</strong> (one run even placed the "floor" <em>above</em> the "table" in height, which is physically impossible). Rather than layering on a third heuristic, the three height-bands were simply <strong>color-coded red/green/blue and rendered</strong> from an oblique angle.</p>
+<figure>
+<p><img alt="Color-coded height bands, oblique view" src="../images/exp-006-splat-blender-usd-scene/auto-classify-oblique.jpg" />
+  </p>
+<figcaption>The three dominant height peaks below camera level, color-coded and rendered together: red = floor, green = a ring of chairs around each table, blue = the tabletops themselves. Unambiguous at a glance — no further statistical heuristics needed.</figcaption>
+</figure>
+<figure>
+<p><img alt="Color-coded height bands, top-down view" src="../images/exp-006-splat-blender-usd-scene/auto-classify-topdown.jpg" />
+  </p>
+<figcaption>Top-down view of the same color-coding: two distinct round tables (blue) are directly visible, each ringed by chairs (green), sitting on the floor (red, showing the camera's own walking path as a sparse grid pattern).</figcaption>
+</figure>
+<p>This settled it immediately and correctly: <strong>red = floor, green = chairs, blue = tabletops</strong> — exactly matching "table or table chairs" from the original ask, and directly confirming both of EXP-005's "two tables" are present and visible in this reconstruction. The lesson: a single rendered image resolved in seconds what two rounds of statistical heuristics (footprint area, point density, height-below-camera) got wrong or contradicted each other on.</p>
+<p><strong>Step 3 — isolate and crop one table + its chairs.</strong> The tabletop-height points were clustered with <code>open3d</code>'s DBSCAN (<code>eps=0.08</code>, separating the two round tables), the larger/more complete cluster (8,133 points) was selected, and a generous cylinder (2.6× the table's radius, floor-height to just above tabletop-height) was cropped directly out of the full-precision splat — no opacity or other filtering applied to the exported crop itself, only to the points used for detection.</p>
+<figure>
+<p><img alt="Automatically cropped table + chairs" src="../images/exp-006-splat-blender-usd-scene/auto-crop-table-chairs.jpg" />
+  </p>
+<figcaption>Fully automatic crop result: one round table (light wood top) with its four office chairs and surrounding floor — obtained with zero manual selection, directly from the original trained splat.</figcaption>
+</figure>
+<p><strong>Step 4 — same slab + placement pipeline as before.</strong> The convex-hull-slab method (§3) was re-run on this crop's own table-height inliers (76 verts / 148 tris), and the same flower-pot placement + USD export script (§4) was re-run against it.</p>
+<figure>
+<p><img alt="First automatic result: table + flower pot only, chairs missing" src="../images/exp-006-splat-blender-usd-scene/auto-final-flowerpot.jpg" />
+  </p>
+<figcaption>First automatic result: flower pot correctly placed on the table, but no chairs — a real oversight caught by a follow-up question, not by design (see Step 5).</figcaption>
+</figure>
+<p><strong>Step 5 — the chairs were missing, and fixing that surfaced two more bugs.</strong> The pipeline above cropped the table <em>and</em> its surrounding chairs into <code>auto_table_crop.ply</code>, but the scene-assembly script only ever pulled the table-height points back out to build the slab — the chair-height and floor-height points were sitting unused in the crop file the whole time, and never got turned into scene geometry. This was a straightforward oversight, not caught until directly asked "why does the final scene not have table and chairs."</p>
+<p>Fixing it took two more rounds:</p>
+<ol>
+<li><strong>First attempt: Poisson-reconstruct each chair separately.</strong> The reasoning was that a single isolated chair, unlike the whole room (§2), is a small coherent object — exactly what Poisson is supposed to be good at. In practice this still produced noisy, spiky, unusable geometry (thin legs and mesh backrests are much harder to reconstruct than a flat tabletop, and get far less point coverage since the camera lingered on the tables specifically, not the chairs). Same underlying failure mode as §2, just scoped to one object instead of the whole room — Poisson needs denser, more complete sampling than these chairs actually have.</li>
+<li><strong>Fix: oriented bounding-box proxies instead</strong>, one box per chair (<code>center</code>, <code>half_extent</code> along the table's own local <code>u</code>/<code>w</code>/normal axes, mean color) computed directly from each chair's full point extent (floor to above seat height) — no reconstruction algorithm at all, same "skip reconstruction, use a simple geometric approximation" pattern that fixed the table in §3.</li>
+</ol>
+<p>A second, related bug also surfaced once chairs were in the scene to compare against: the table slab's convex hull was visually overlapping the chairs. Cause: the hull was built from <em>every</em> table-height-band point anywhere in the crop, with no horizontal radius limit — it had quietly absorbed a few stray same-height points beyond the true round tabletop, making the hull bleed outward. Fixed by clipping the hull's input points to within 1.15× the table's own DBSCAN cluster radius (§ Step 3) before computing the hull, dropping it from 76 to 52 vertices and pulling the boundary back to the real tabletop extent.</p>
+<figure>
+<p><img alt="Final automatic result: table, four chairs, and flower pot" src="../images/exp-006-splat-blender-usd-scene/auto-final-with-chairs.jpg" />
+  </p>
+<figcaption>Corrected end-to-end result: round table (radius-clipped hull), flower pot, and four chair bounding-box proxies at their correct positions and heights — all built with no manual selection at any stage. Chair colors are flat/muddy since they're a mean over each box's points, a known limitation of the proxy approach.</figcaption>
+</figure>
+<hr />
+<h2 id="impediments">Impediments<a class="headerlink" href="#impediments" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Current Blockers</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ~~No recoverable real-world scale~~ — <strong>resolved for the automatic pipeline</strong> (§5): operating directly on <code>export/splat.ply</code> keeps floor, chairs, table, and camera trajectory in one consistent internal scale, since nothing gets independently renormalized per-crop. Still <strong>not real-world meters</strong> though — that still needs a known physical dimension (e.g. measured table height) to convert nerfstudio's internal units to metric, for either pipeline.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> The manual SuperSplat crop path still renormalizes to <code>[-1, 1]</code> with no recoverable transform — use the automatic pipeline (§5) instead when metric consistency across objects/scene matters</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Table surface has flat/gradient shading, not the original splat texture — only a few dozen hull vertices carry color, so large faces interpolate between a handful of samples instead of showing real detail (wood grain, etc.) — true of both pipelines</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Flower pot is procedural placeholder geometry, not a real asset — no Isaac/Omniverse asset library was confirmed available in this environment</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ~~The automatic pipeline (§5) only isolates one table; the chairs and floor context it also crops are not yet turned into their own clean geometry~~ — <strong>chairs fixed</strong> (§ Step 5): now represented as oriented bounding-box proxies. Floor still not modeled as its own geometry.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Chairs are coarse bounding-box proxies, not real chair shapes — fine for layout/collision purposes, not for visual fidelity; their color is a flat mean over each box's points, so it reads as muddy grey rather than the chair's actual appearance</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Known Risks</p>
+<ul>
+<li>The convex-hull-slab approach only works for objects that are genuinely planar (or close to it) in the crop; it is not a general splat-to-mesh solution — a non-planar object of interest would still need proper (and likely per-object, not per-scene) Poisson or other surface reconstruction</li>
+<li><code>blender --background --python</code> requires absolute output paths — a relative render/USD path silently resolves against Blender's internal state, not the shell's cwd, and fails with a non-obvious "No such file or directory"</li>
+<li>Purely statistical height/footprint heuristics for classifying floor vs. chairs vs. table were unreliable on this scene (see §5) — any future automatic classification on a new capture should budget for a quick visual sanity-check render, not trust the first heuristic that runs without error</li>
+<li>Poisson reconstruction's failure mode isn't confined to whole-room crops — it also produced unusable noisy geometry on a single, already-isolated chair (§ Step 5), so "isolate the object first" alone doesn't guarantee Poisson will work; point-density/coverage on the object itself matters too</li>
+<li>A convex hull built from a height-band alone, with no horizontal radius limit, can silently absorb stray same-height points from elsewhere in the crop and bleed past the true object boundary — worth radius-clipping against an independently-known object extent (e.g. a clustering result) whenever one is available, not just trusting the raw hull</li>
+</ul>
+</div>
+<hr />
+<h2 id="evaluation-protocol">Evaluation Protocol<a class="headerlink" href="#evaluation-protocol" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Metric:</strong> qualitative — visual correctness of up-axis, table shape, and object placement (no ground-truth pose available); USD round-trip verified by re-importing the exported file into a fresh Blender session and checking object transforms</li>
+<li><strong>Real environment:</strong> same office scene / table as EXP-005's <code>cam4</code> single-camera splat</li>
+</ul>
+<hr />
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p><strong>Plane fit:</strong> normal <code>(-0.0024, 0.0175, 0.9998)</code> ≈ Z-up, 14,941/132,900 inlier points, inlier bbox spans nearly the full crop in X/Y and only 0.063 units in Z — confirms a broad, thin, horizontal tabletop.</p>
+<p><strong>Poisson-on-everything:</strong> 381,736 verts / 750,061 tris, visually unusable (chaotic blob fusing table + room clutter).</p>
+<p><strong>Plane-inlier convex-hull slab:</strong> 46 verts / 88 tris, clean, correctly shaped and oriented, immediately usable.</p>
+<p><strong>USD export:</strong> <code>table_with_flowerpot.usd</code>, 42 KB binary Crate format, round-trips cleanly through Blender's USD importer — flower pot object recovered at <code>(0.05, 0.10, 0.663)</code>, flush with the slab surface at the requested XY.</p>
+<p><strong>Deliverables — manual SuperSplat-crop pipeline</strong> (<code>/data/fast/workspaces/tushar/alia16k_capture2/cam4_single/blender_pipeline/</code>):</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_table_slab.py</code></td>
+<td>Builds the clean convex-hull table slab from RANSAC plane inliers</td>
+</tr>
+<tr>
+<td><code>build_scene.py</code></td>
+<td>Assembles table + flower pot + lighting + camera, renders preview, exports USD</td>
+</tr>
+<tr>
+<td><code>table_slab.ply</code></td>
+<td>Table proxy mesh (46 verts / 88 tris)</td>
+</tr>
+<tr>
+<td><code>table_with_flowerpot.usd</code></td>
+<td>Final exported scene</td>
+</tr>
+<tr>
+<td><code>scene.blend</code></td>
+<td>Editable Blender scene</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fully-automatic-pipeline-5-results">Fully automatic pipeline (§5) — results<a class="headerlink" href="#fully-automatic-pipeline-5-results" title="Permanent link">&para;</a></h3>
+<p><strong>Vertical axis (from camera trajectory PCA):</strong> <code>(-0.0016, 0.0055, 1.0)</code> — camera height varied only ±0.008 units across 121 frames vs. ±0.84/±0.99 in X/Y, strongly confirming the axis.</p>
+<p><strong>Height classification (visually confirmed, not purely statistical):</strong> floor height ≈ −0.595, chair-seat height ≈ −0.385, tabletop height ≈ −0.249 (all in the scene's internal units).</p>
+<p><strong>Table clustering:</strong> DBSCAN on tabletop-height points found 10 clusters (both round tables plus smaller unrelated surfaces); the largest, cleanest cluster (8,133 points, radius ≈ 0.42) was selected.</p>
+<p><strong>Crop:</strong> cylindrical crop (radius 1.09, floor-to-above-table height band) around the selected table pulled 65,475 / 336,682 Gaussians directly from the full-precision splat, visually confirmed as one round table with 4 office chairs and floor.</p>
+<p><strong>Table slab (final, radius-clipped):</strong> 52 verts / 100 tris — down from an initial 76/148 before the hull-overlap fix (§ Step 5).</p>
+<p><strong>Chairs:</strong> 4 DBSCAN seat clusters kept (out of 5 found — the 5th, at distance ≈0.006 from the table center, was the table's own pedestal base, correctly excluded by a minimum-distance filter), each represented as an oriented bounding-box proxy: half-extents roughly 0.17–0.28 units along the table's local axes, positioned 0.94–1.04 units from the table center.</p>
+<p><strong>USD export (with chairs):</strong> <code>table_with_flowerpot_auto.usd</code>, 44.9 KB, round-trips cleanly — flower pot recovered at <code>(0.125, 0.183, -0.212)</code> flush with the table, all 4 chair boxes recovered at their correct positions/heights, table/light/camera all present.</p>
+<p><strong>Deliverables — automatic pipeline</strong> (same directory):</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto_find_table3.py</code></td>
+<td>Deterministic vertical-axis + height-peak detection (camera-trajectory PCA + histogram)</td>
+</tr>
+<tr>
+<td><code>render_diagnostic.py</code> / <code>render_diagnostic_views.py</code></td>
+<td>Color-codes height bands and renders them for visual classification</td>
+</tr>
+<tr>
+<td><code>auto_crop_table.py</code></td>
+<td>DBSCAN table clustering + cylindrical crop from the full splat</td>
+</tr>
+<tr>
+<td><code>auto_table_crop.ply</code></td>
+<td>Cropped table + chairs + floor, full precision, real internal scale (65,475 Gaussians)</td>
+</tr>
+<tr>
+<td><code>build_table_slab_auto.py</code> / <code>table_slab_auto.ply</code></td>
+<td>Convex-hull table slab from the auto-detected crop, radius-clipped to the table's own cluster extent</td>
+</tr>
+<tr>
+<td><code>build_chairs_auto.py</code> / <code>chair_boxes.json</code></td>
+<td>DBSCAN chair-seat clustering + oriented bounding-box proxy per chair (after per-chair Poisson failed)</td>
+</tr>
+<tr>
+<td><code>build_scene_auto.py</code> / <code>table_with_flowerpot_auto.usd</code> / <code>scene_auto.blend</code></td>
+<td>Final automatic scene assembly (table + chairs + pot) + USD export</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="lessons-learned">Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Poisson reconstruction is the wrong tool for a whole cluttered scene crop.</strong> It works well on a single coherent, well-sampled object; pointed at an entire room-scale crop (table + chairs + floor mixed together) it fuses everything into one chaotic watertight blob. Isolate the object of interest <em>first</em> (here, via the RANSAC plane) and reconstruct only that.</li>
+<li><strong>A RANSAC plane fit is a much better "which way is up" signal than eyeballing orthographic renders</strong>, especially on noisy reconstructions — it's fast, quantitative, and also directly locates the surface (inlier centroid/bbox), not just the orientation.</li>
+<li><strong>SuperSplat's crop export silently discards world scale.</strong> Any downstream pipeline that needs metric units (robot-sim placement, physics) has to reintroduce a scale factor manually — there's no metadata to recover it automatically.</li>
+<li><strong>For a genuinely planar object of interest, skip mesh reconstruction of raw points entirely</strong> — projecting inlier points into the plane's local 2D basis and convex-hull-extruding is faster, cleaner, and more robust than any point-cloud reconstruction algorithm for that specific shape class.</li>
+<li><strong>Blender headless scripts need absolute paths for render/export filepaths</strong> — a relative path resolves against unexpected internal state and fails with a misleading "No such file or directory" rather than an obviously-relative-path error.</li>
+<li><strong>A walking camera's own trajectory is a strong, free prior for finding "up."</strong> Height varies almost not at all during normal walking capture while horizontal position varies a lot — the smallest-variance axis of the camera positions is a precise, deterministic vertical-axis estimate, with no RANSAC randomness and no dependence on scene content at all.</li>
+<li><strong>Statistical classification heuristics (footprint area, point density, height-below-camera) were each individually plausible but gave contradictory or physically-impossible answers</strong> when applied to real, imperfect reconstruction data (a "floor" peak once came out <em>above</em> a "table" peak). A single color-coded diagnostic render resolved the ambiguity immediately and should be the default first move for any future automatic scene-element classification, not a last resort.</li>
+<li><strong>Reconstructed floor point density does not reliably track "this is the floor."</strong> A camera-path walking surface can be reconstructed just as densely as a heavily-photographed tabletop — density alone is not a safe floor/table discriminator on its own.</li>
+<li><strong>Working directly on the original, uncropped trained splat instead of a SuperSplat export avoids an entire class of downstream problems</strong> (renormalized scale, no recoverable transform) for free — worth defaulting to this path whenever the object of interest can be found programmatically, reserving manual SuperSplat cropping for cases where automatic detection genuinely can't isolate the right region.</li>
+<li><strong>A crop containing everything needed doesn't mean the scene-assembly script actually uses all of it.</strong> <code>auto_table_crop.ply</code> had the chairs and floor in it from the start; they simply never got read back out into the Blender scene. Cropping the right data and consuming all of it are two separate steps, worth checking independently rather than assuming success once the crop looks right.</li>
+<li><strong>"Isolate the object first" is necessary but not sufficient for Poisson to work well</strong> — it also failed on a single, already-isolated chair, not just the whole room. The determining factor is point density/coverage on the object itself, not just how cleanly it's separated from everything else.</li>
+<li><strong>A DBSCAN or clustering result's own extent is a good, principled radius to clip a related-but-separately-built piece of geometry to</strong> — the table hull's overlap with the chairs was fixed by reusing the table cluster's own radius (already computed during cropping) as a clip bound, rather than inventing a new threshold.</li>
+<li><strong>A cluster essentially at distance zero from another object's center is probably that object's own structure, not a neighboring one</strong> — the 5th "chair" candidate was actually the table's own pedestal base; a simple minimum-distance filter caught it immediately once checked.</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Reintroduce true real-world (metric) scale for the automatic pipeline too — internal-scale consistency is solved, but converting to meters still needs one known physical measurement (e.g. actual table height) as an anchor</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Replace the procedural flower pot with a real USD asset from an Isaac/Omniverse asset pack, using the same placement logic (plane normal + centroid)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> If visual fidelity of the table surface matters (not just shape/placement), bake a texture from the original splat imagery instead of relying on sparse per-vertex hull colors</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Generalize the "RANSAC plane → convex-hull slab" approach into a reusable utility for any future splat-to-sim-asset conversion of planar surfaces (desks, floors, shelves)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test the exported USD directly in Isaac Sim (rigid-body setup, collision mesh from the slab and chair boxes) rather than only verifying the round-trip through Blender</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Turn the floor (already isolated in <code>auto_table_crop.ply</code>, not yet used) into its own geometry for a fuller sim-ready scene</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Improve chair fidelity beyond bounding boxes — e.g. try Poisson again with a higher-resolution/denser recapture of the chairs specifically, or source real chair assets, since the current proxies lose shape and give a flat/muddy color</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Apply the automatic (§5) pipeline to the second detected table/round cluster, and to the second physical table from EXP-005, to check the method generalizes rather than having been tuned to one lucky case</li>
+</ul>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Source splat: <a href="../exp-005-multicam-gaussian-splatting/">EXP-005</a> — <code>cam4</code> single-camera pipeline, HD tier (PSNR 21.02 / SSIM 0.917 / LPIPS 0.190)</li>
+<li>SuperSplat (PlayCanvas 3DGS editor) — used for the manual box-crop selection and <code>.ply</code> export in §1–4</li>
+<li><code>pycolmap</code> — used in §5 to load camera poses for the trajectory-based vertical-axis estimate, combined with nerfstudio's own <code>dataparser_transforms.json</code> to bring them into the splat's coordinate frame</li>
+<li>Blender 5.2.1 LTS headless (<code>bpy</code>), <code>open3d</code> 0.19.0, <code>scipy</code> 1.15.3 — all run inside the <code>gsplat</code> distrobox container's nerfstudio venv (<code>/home/tushar/codes/nerfstudio/.venv</code>)</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../exp-005-multicam-gaussian-splatting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: EXP-005: Multi-Cam Gaussian Splatting">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                EXP-005: Multi-Cam Gaussian Splatting
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../_template/" class="md-footer__link md-footer__link--next" aria-label="Next: Template (copy me)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Template (copy me)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
