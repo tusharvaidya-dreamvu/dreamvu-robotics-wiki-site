@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion Retargeting — Companion Guide & Glossary</title>
+<style>
+/* ── Print setup ── */
+@page {
+  size: A4;
+  margin: 22mm 20mm 22mm 20mm;
+}
+@media print {
+  .no-print { display: none !important; }
+  body { font-size: 10.5pt; }
+  h1 { font-size: 20pt; }
+  h2 { font-size: 14pt; }
+  h3 { font-size: 11.5pt; }
+  .page-break { page-break-before: always; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: 'Georgia', serif;
+  font-size: 11pt;
+  line-height: 1.75;
+  color: #1a1a2e;
+  background: #fff;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 40px 32px 60px;
+}
+a { color: #5b21b6; }
+
+/* ── Typography ── */
+h1 {
+  font-size: 24pt;
+  font-weight: 700;
+  color: #1a1a2e;
+  border-bottom: 3px solid #7c3aed;
+  padding-bottom: 12px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+h1 .sub {
+  display: block;
+  font-size: 12pt;
+  font-weight: 400;
+  color: #6b7280;
+  margin-top: 8px;
+}
+h2 {
+  font-size: 15pt;
+  font-weight: 700;
+  color: #3b0764;
+  border-left: 4px solid #7c3aed;
+  padding-left: 12px;
+  margin: 36px 0 14px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 22px 0 8px;
+  page-break-after: avoid;
+}
+p { margin: 0 0 10px; }
+ul, ol { margin: 0 0 12px; padding-left: 22px; }
+li { margin-bottom: 5px; }
+strong { color: #1a1a2e; }
+em { color: #374151; }
+
+/* ── Cover meta ── */
+.cover-meta {
+  font-size: 10pt;
+  color: #6b7280;
+  margin-bottom: 36px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.cover-meta span { margin-right: 20px; }
+
+/* ── Print button ── */
+.print-btn {
+  display: inline-block;
+  margin-bottom: 28px;
+  padding: 10px 24px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+}
+.print-btn:hover { background: #6d28d9; }
+
+/* ── Intuition / callout boxes ── */
+.intuition {
+  background: #f5f3ff;
+  border-left: 4px solid #7c3aed;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-style: italic;
+  color: #3b0764;
+  font-size: 10.5pt;
+}
+.intuition::before {
+  content: "Intuition: ";
+  font-weight: 700;
+  font-style: normal;
+  color: #7c3aed;
+}
+
+.callout {
+  background: #f0fdf4;
+  border-left: 4px solid #16a34a;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-size: 10.5pt;
+  color: #14532d;
+}
+.callout::before {
+  content: "Key point: ";
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.warning {
+  background: #fff7ed;
+  border-left: 4px solid #ea580c;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 14px 0;
+  font-size: 10.5pt;
+  color: #7c2d12;
+}
+.warning::before {
+  content: "Watch out: ";
+  font-weight: 700;
+  color: #ea580c;
+}
+
+/* ── Formula blocks ── */
+.formula {
+  background: #1e1b4b;
+  color: #c4b5fd;
+  font-family: 'Courier New', monospace;
+  font-size: 10pt;
+  line-height: 1.9;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 14px 0;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+.formula .var { color: #67e8f9; }
+.formula .comment { color: #94a3b8; }
+.formula .highlight { color: #fcd34d; font-weight: 700; }
+
+/* ── Term breakdown table ── */
+.term-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 10pt;
+  page-break-inside: avoid;
+}
+.term-table th {
+  background: #7c3aed;
+  color: white;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+.term-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+.term-table tr:nth-child(even) td { background: #f9fafb; }
+.term-table td:first-child { font-family: 'Courier New', monospace; font-size: 9.5pt; color: #5b21b6; white-space: nowrap; }
+
+/* ── Glossary ── */
+.glossary-entry {
+  margin-bottom: 18px;
+  page-break-inside: avoid;
+}
+.glossary-term {
+  font-weight: 700;
+  font-size: 11pt;
+  color: #3b0764;
+  font-family: system-ui, sans-serif;
+}
+.glossary-abbr {
+  font-family: 'Courier New', monospace;
+  background: #ede9fe;
+  color: #5b21b6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9.5pt;
+  margin-left: 6px;
+}
+.glossary-def {
+  margin: 4px 0 0 0;
+  color: #374151;
+}
+.glossary-ex {
+  font-style: italic;
+  color: #6b7280;
+  font-size: 10pt;
+  margin-top: 3px;
+}
+
+/* ── Section divider ── */
+.section-divider {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 18pt;
+  margin: 32px 0 8px;
+  letter-spacing: 6px;
+}
+
+/* ── Two-col for glossary in print ── */
+@media print {
+  .two-col-glossary {
+    column-count: 2;
+    column-gap: 24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Print button (screen only) -->
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<!-- Cover -->
+<h1>
+  Motion Retargeting for Retail Humanoid
+  <span class="sub">Companion Guide — Basics, Intuitions &amp; Glossary</span>
+</h1>
+<div class="cover-meta">
+  <span>DreamVu Robotics · 2026</span>
+  <span>Companion to the 25-slide RL Framework presentation</span>
+  <span>Unitree G1 / Fourier GR1 deployment context</span>
+</div>
+
+<p>This document is a self-contained reference for readers of the <em>Motion Retargeting for Retail Humanoid — Full RL Framework</em> slide deck. Every technical term used in those slides is explained here from first principles, and the intuition behind each formula is unpacked step by step. No prior robotics background is assumed beyond basic algebra.</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>1 · What Is Motion Retargeting?</h2>
+
+<p>Imagine you choreograph a dance for a 6-foot professional dancer. Now you want a 5-foot child to perform the same dance — the spirit and intent should be the same (a pirouette is still a pirouette), but the exact limb angles, step lengths, and balance points all need to change because the bodies are different.</p>
+
+<p><strong>Motion retargeting</strong> is exactly that process applied to robots. We have motion data captured from a human — perhaps a retail store worker reaching for a product on a high shelf — and we want a humanoid robot to replicate that behavior. The robot has different proportions, different joint types, and different physical constraints, so we cannot simply play back the human's joint angles on the robot. Retargeting computes a new motion sequence that achieves the same <em>functional intent</em> on the robot's specific body.</p>
+
+<div class="intuition">
+Think of it as "translation" — not between languages, but between bodies. Just as a translator preserves meaning while changing words, a retargeting algorithm preserves motion intent while changing joint angles to fit a new morphology.
+</div>
+
+<h3>Why is it hard?</h3>
+<ul>
+  <li><strong>Different proportions:</strong> A human arm might be 70 cm long; a robot arm might be 50 cm. To reach the same point in space, the robot must adopt a different elbow angle.</li>
+  <li><strong>Different degrees of freedom:</strong> A human wrist can spin freely; many robot wrists have only 1 or 2 axes of rotation. Some moves are simply impossible to replicate exactly.</li>
+  <li><strong>Physical laws still apply:</strong> Even if you find joint angles that make the robot look like the human, the robot might fall over because its center of mass is in the wrong place. The retargeted motion must be <em>physically feasible</em>.</li>
+  <li><strong>Contact must be preserved:</strong> If the human's foot is on the ground, the robot's foot must also be on the ground — otherwise the robot will slide or float in an unnatural way.</li>
+</ul>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>2 · Body Representation: SMPL</h2>
+
+<p>Before retargeting can happen, the human's body must be represented in a mathematical form. The standard tool is <strong>SMPL</strong> (Skinned Multi-Person Linear model).</p>
+
+<h3>What SMPL gives you</h3>
+<p>SMPL represents a human body with two sets of parameters:</p>
+<ul>
+  <li><strong>β (beta) — Shape parameters:</strong> 10 numbers that control body proportions — how tall, how wide the shoulders, how long the arms. Think of it as the "body type" dial.</li>
+  <li><strong>θ (theta) — Pose parameters:</strong> Joint rotation angles for each of 24 joints — where each limb is pointing at this moment in time. This changes every frame of a motion clip.</li>
+</ul>
+
+<div class="callout">
+SMPL produces a 3D mesh of ~6,890 vertices, but for retargeting we only care about the <strong>24 joint positions</strong> (a skeleton) derived from θ. The mesh detail is useful for rendering and contact detection but not for the retargeting math.
+</div>
+
+<h3>The 24 SMPL joints</h3>
+<p>SMPL-24 covers the full body: pelvis (root), spine (3 levels), neck, head, shoulders, elbows, wrists, hips, knees, ankles, feet. Notably, individual <em>finger joints</em> are not included — that requires SMPL-X (Extended), which adds 15 joints per hand. This matters for retail manipulation: grasping a product requires finger-level control that SMPL-24 cannot represent directly.</p>
+
+<div class="intuition">
+β is like the body's "passport photo" — it stays fixed for a person. θ is like the body's "live feed" — it changes 30 times per second as the person moves.
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>3 · Kinematics Basics</h2>
+
+<h3>Degrees of Freedom (DoF)</h3>
+<p>A <strong>degree of freedom</strong> is one independent axis along which a joint can rotate (or translate). A simple hinge joint (like your knee, mostly) has 1 DoF. Your shoulder has roughly 3 DoF — it can swing forward/back, left/right, and rotate along the arm axis. The Unitree G1 humanoid robot has 43 total actuated DoF across its whole body.</p>
+
+<h3>Forward Kinematics (FK)</h3>
+<p>Given a set of joint angles for every joint, compute where the end-effector (hand, foot, etc.) ends up in 3D space. This is a straightforward chain of matrix multiplications up the kinematic chain — always has a unique answer.</p>
+
+<div class="intuition">
+FK is easy: given a recipe (joint angles), you always get the same dish (end-effector position).
+</div>
+
+<h3>Inverse Kinematics (IK)</h3>
+<p>The <em>reverse</em> problem: given a desired end-effector position in 3D space, find joint angles that achieve it. This is <strong>much harder</strong> — there are usually infinitely many solutions (many arm configurations can put your hand at the same point in space), and sometimes there are no valid solutions at all (the target is out of reach).</p>
+
+<div class="intuition">
+IK is like trying to reverse-engineer the recipe from the dish. Multiple recipes might produce the same dish, and some dishes cannot be made at all with your available ingredients.
+</div>
+
+<h3>Joint Limits vs. Range of Motion (ROM)</h3>
+<p><strong>Range of Motion</strong> is the biological/physical range a joint can move — e.g., a human elbow bends from ~0° to ~145°. For a human modeled in SMPL, this is soft — the math doesn't enforce it, it just reflects what poses are statistically plausible.</p>
+<p><strong>Joint limits</strong> for a robot are hard mechanical stops defined in its URDF specification file. If a robot's knee joint is limited to −2.87 to 0.52 radians, the servo physically cannot go beyond those values. The retargeting optimization must respect these as hard constraints.</p>
+
+<div class="warning">
+A MoCap clip might contain a wrist rotation that looks natural on a human but exceeds the robot's wrist joint limit by 30°. If you ignore this, the real robot will either hit its hard stop and damage itself, or the simulation will produce unrealistic behavior.
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>4 · The Embodiment Gap — Intuition</h2>
+
+<p>The <strong>embodiment gap</strong> is the collective name for all the differences between a human body and a robot body that make direct motion transfer impossible. It has four main components:</p>
+
+<ol>
+  <li><strong>Morphological mismatch:</strong> Different limb lengths, torso size, head position. A human's arm/leg ratio is different from the robot's, so the same task (reaching a 1.5 m shelf) requires fundamentally different joint angles on each body.</li>
+  <li><strong>DoF mismatch:</strong> Humans have ~244 DoF across the whole body (including subtle spine bending and facial muscles). The Unitree G1 has 43. Some human motions simply have no equivalent robot configuration.</li>
+  <li><strong>Mass distribution:</strong> A robot's mass is heavily concentrated in its torso (motors, batteries). A human's mass is more distributed. The same pose that keeps a human balanced will topple the robot because the center of mass lands outside the support polygon.</li>
+  <li><strong>Actuator limits:</strong> Human muscles produce force continuously and can co-contract. Robot servos have discrete torque limits and can only push in one direction per joint axis at a time.</li>
+</ol>
+
+<div class="intuition">
+Imagine trying to wear someone else's skeleton. Even if you copy their exact joint angles, your different proportions mean your limbs end up in completely different positions in space. The embodiment gap is that skeleton mismatch.
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>5 · The IK Retargeting Formulation — Term by Term</h2>
+
+<p>The optimization equation for kinematic retargeting from slide 9 is:</p>
+
+<div class="formula">
+<span class="var">q̃ᵗᴿ</span> = argmin  Σ<sub>k∈K</sub> <span class="highlight">wₖ</span> ‖ <span class="var">pᵏᴿ(qᴿ)</span> − <span class="highlight">α</span> · <span class="var">pᵏᴴ(qᵗᴴ)</span> ‖²
+         <span class="comment">+ λₛ ‖q̇ᴿ‖²</span>          <span class="comment">← smoothness penalty</span>
+         <span class="comment">+ λ_c φ_contact(qᴿ)</span>   <span class="comment">← foot contact consistency</span>
+
+<span class="comment">subject to:  qᴿ ∈ C_R   (joint limits + self-collision constraints)</span>
+</div>
+
+<p>This looks intimidating but every piece has a simple job. Let's go through each one:</p>
+
+<table class="term-table">
+  <thead><tr><th>Symbol</th><th>What it is</th><th>Why it's there</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>q̃ᵗᴿ</td>
+      <td>The output: optimal robot joint angles at time t</td>
+      <td>This is what we're solving for — the retargeted pose at each frame.</td>
+    </tr>
+    <tr>
+      <td>argmin</td>
+      <td>"Find the value that minimizes the following"</td>
+      <td>We want the robot pose that is as close as possible to the human pose, subject to constraints.</td>
+    </tr>
+    <tr>
+      <td>Σ<sub>k∈K</sub></td>
+      <td>Sum over a set of key-points K</td>
+      <td>We don't try to match every single joint — just the key-points that matter most: wrists, ankles, head, COM. Focusing on these preserves functional intent without over-constraining the IK.</td>
+    </tr>
+    <tr>
+      <td>wₖ</td>
+      <td>Weight for key-point k</td>
+      <td>Not all joints are equally important. For retail, the wrist position matters most (product reach accuracy) so wrist weight is set 3× higher than ankle weight. This is a design choice.</td>
+    </tr>
+    <tr>
+      <td>pᵏᴿ(qᴿ)</td>
+      <td>Position of key-point k on the robot given joint angles qᴿ</td>
+      <td>This is computed via forward kinematics — given the robot's joint angles, where does the wrist end up in 3D space?</td>
+    </tr>
+    <tr>
+      <td>α · pᵏᴴ(qᵗᴴ)</td>
+      <td>Scaled position of key-point k on the human</td>
+      <td>α is the scale factor between human and robot link lengths. A 1.75 m human reaching 1.5 m up must be scaled to match a 1.3 m robot. Without α, you'd be asking the robot to reach positions its limbs physically cannot reach.</td>
+    </tr>
+    <tr>
+      <td>‖ · ‖²</td>
+      <td>Squared Euclidean distance (squared error)</td>
+      <td>Penalizes large mismatches more than small ones. Squaring also makes the optimization smooth (differentiable), which is needed for gradient-based solvers.</td>
+    </tr>
+    <tr>
+      <td>λₛ ‖q̇ᴿ‖²</td>
+      <td>Smoothness penalty on joint velocity</td>
+      <td>Without this, the optimizer might find solutions that jump wildly between frames — perfect per-frame but causing violent, jerky motion. This term penalizes large velocity, forcing temporal smoothness.</td>
+    </tr>
+    <tr>
+      <td>φ_contact(qᴿ)</td>
+      <td>Foot contact consistency term</td>
+      <td>If the human's foot is on the ground at this frame, the robot's corresponding foot must also be on the ground. This prevents the common artifact where the retargeted robot floats or slides its feet.</td>
+    </tr>
+    <tr>
+      <td>C_R</td>
+      <td>Constraint set for the robot</td>
+      <td>Hard bounds: joint limits (servo range) + self-collision (the arm can't pass through the torso). The argmin must stay inside this set — no solution outside it is acceptable.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="intuition">
+The whole equation says: "Find robot joint angles that put the robot's key-points (wrists, ankles, head, COM) as close as possible to where the human's key-points are (scaled for size), while staying smooth over time, preserving foot contact, and never violating the robot's physical limits."
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>6 · Physics Cleaning — Why It's Needed</h2>
+
+<p>Even after the IK retargeting optimization above, the resulting motion often has artifacts. This happens because the per-frame IK doesn't fully account for dynamics — it optimizes pose-by-pose without simulating inertia, momentum, or contact forces. Three common artifacts:</p>
+
+<h3>Foot Sliding</h3>
+<p>The retargeted robot's foot appears to be on the ground but slowly drifts sideways during a standing phase — it "slides" without any walking motion driving it. This happens because the IK found a valid pose at each frame independently, but didn't enforce that a planted foot must stay fixed in world space across frames. On a real robot this would cause falls on low-friction tile floors (μ ≈ 0.4 in retail environments).</p>
+
+<h3>Ground Penetration</h3>
+<p>A joint position (often a foot or knee during a squat) ends up mathematically below the floor plane — the body is partially "inside" the ground. This happens because the IK optimized in free space without a floor constraint. In simulation this will cause physics engine instability; on real hardware it simply means the commanded pose is unreachable.</p>
+
+<h3>Self-Collision</h3>
+<p>The retargeted motion places the robot's arm inside its own torso — physically impossible. This happens most often during full-height shelf reaching where the arm swings close to the body. It must be detected using the robot's URDF collision meshes and re-solved via IK with the collision as an additional constraint.</p>
+
+<div class="callout">
+Physics cleaning produces a "clean reference dataset" where every frame is physically feasible. The RL policy then only needs to learn to track this reference — not also correct physics errors. This separation makes RL training significantly more stable.
+</div>
+
+<h3>Motion Difficulty Score</h3>
+<p>After cleaning, each motion clip is assigned a difficulty score — a measure of how hard it will be for an RL policy to track this trajectory. High-difficulty clips (full arm extension while balancing on one foot) are placed later in training via <strong>curriculum learning</strong> — the policy first masters easy clips (mid-height standing reach) before attempting hard ones (squatting to a 0.3 m shelf, then standing and walking).</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>7 · Reinforcement Learning Basics</h2>
+
+<h3>The Core Idea</h3>
+<p>Reinforcement learning (RL) trains an agent by letting it interact with an environment and learn from the consequences of its actions. Unlike supervised learning (where you provide correct answers), RL provides only a scalar <strong>reward signal</strong> — positive for good behavior, negative for bad — and the agent figures out what "good" means by trial and error.</p>
+
+<h3>The MDP Framework</h3>
+<p>Formally, RL is framed as a <strong>Markov Decision Process (MDP)</strong> with four components:</p>
+
+<table class="term-table">
+  <thead><tr><th>Component</th><th>Formal symbol</th><th>What it means in practice (retail humanoid)</th></tr></thead>
+  <tbody>
+    <tr><td>State</td><td>sₜ</td><td>Everything the policy can observe: current joint angles, velocities, foot contact flags, reference trajectory look-ahead, target shelf height</td></tr>
+    <tr><td>Action</td><td>aₜ</td><td>The policy's output: desired joint positions sent to the PD controller 30–50 times per second</td></tr>
+    <tr><td>Reward</td><td>rₜ</td><td>A scalar score at each timestep: positive for tracking the reference motion, reaching the product, maintaining balance; negative for falling, colliding with shelves, wasting energy</td></tr>
+    <tr><td>Policy</td><td>π(aₜ | sₜ)</td><td>The neural network we're training: takes state as input, outputs action. After training, this is what runs on the real robot.</td></tr>
+  </tbody>
+</table>
+
+<div class="intuition">
+RL is like training a dog with treats. You don't explain "move your left paw 15 degrees" — you just reward good outcomes and punish bad ones until the dog figures out the right behavior. The MDP is the formal mathematics of that process.
+</div>
+
+<h3>Why RL instead of just playing back retargeted motion?</h3>
+<p>The retargeted motion gives us a reference trajectory — a sequence of desired poses. We could try to play this back directly (open-loop control). But:</p>
+<ul>
+  <li>Real robots have sensor noise, motor delays, and small manufacturing differences from their simulation models.</li>
+  <li>The retail environment has variations the reference motion never encountered — different floor friction patches, slightly different shelf heights, a product that's heavier than expected.</li>
+  <li>Open-loop playback has no way to recover from disturbances — a slight push and the robot falls.</li>
+</ul>
+<p>RL trains a <em>closed-loop policy</em> that observes the actual robot state at every timestep and continuously corrects for deviations from the reference. It learns to be robust to perturbations by experiencing thousands of them during training in simulation.</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>8 · The Reward Function — Term by Term</h2>
+
+<div class="formula">
+rₜ = <span class="highlight">w_imit</span> · r_imit  +  <span class="highlight">w_task</span> · r_task  +  <span class="highlight">w_reg</span> · r_reg
+</div>
+
+<p>The total reward is a weighted sum of three components. Each component serves a different purpose:</p>
+
+<h3>8.1 Imitation Reward (r_imit) — "Move like a human"</h3>
+
+<div class="formula">
+<span class="var">r_imit</span> = exp(−Σₖ αₖ ‖pᵏᴿ − p̃ᵏᴿ‖²)  ×  exp(−β ‖q̇ᴿ − q̃̇ᴿ‖²)
+</div>
+
+<p>This measures how closely the robot's current pose matches the reference pose from the retargeted MoCap data. Two sub-terms:</p>
+<ul>
+  <li><strong>Position term:</strong> <code>exp(−Σ αₖ ‖pᵏᴿ − p̃ᵏᴿ‖²)</code> — sum of weighted squared distances between robot key-points and their reference positions. The wrist weight αₖ is 3× higher in retail because reach accuracy matters most.</li>
+  <li><strong>Velocity term:</strong> <code>exp(−β ‖q̇ᴿ − q̃̇ᴿ‖²)</code> — penalizes deviation from reference joint velocities. This forces the motion to have human-like speed and rhythm, not just human-like poses.</li>
+</ul>
+
+<h3>Why use exp(−x²) instead of just −x²?</h3>
+<p>Two reasons:</p>
+<ol>
+  <li><strong>Bounded range:</strong> The exponential always outputs a value between 0 and 1. When the robot perfectly matches the reference (x=0), reward = 1. As the match worsens (x grows), reward smoothly decays toward 0. This makes the reward scale consistent regardless of the magnitude of errors.</li>
+  <li><strong>Gradient shape:</strong> Near-perfect tracking produces a strong gradient signal (steep slope near x=0), which guides the optimizer efficiently. Far from the reference, the gradient is near zero — the policy isn't rewarded for "being slightly less wrong" when it's very wrong, which prevents reward hacking.</li>
+</ol>
+
+<div class="intuition">
+exp(−x²) acts like a "spotlight" reward — full reward when you're exactly on target, rapidly fading to zero as you drift away. A flat reward (e.g., −x²) keeps rewarding incremental improvement even when the policy is badly off-track, which can cause the optimizer to focus on wrong behaviors.
+</div>
+
+<h3>8.2 Task Reward (r_task) — "Accomplish the retail goal"</h3>
+<p>The imitation reward alone would produce a robot that moves like a human but doesn't necessarily complete the task. The task reward provides the goal-directed signal:</p>
+
+<table class="term-table">
+  <thead><tr><th>Sub-reward</th><th>Formula</th><th>Intuition</th></tr></thead>
+  <tbody>
+    <tr><td>r_reach</td><td>−‖p_wrist − p_target‖</td><td>Penalizes distance between the robot's wrist and the target product. Approaches zero as the wrist reaches the product.</td></tr>
+    <tr><td>r_grasp</td><td>binary contact signal</td><td>+1 when the gripper makes contact with the product. Binary because contact is a discrete event — you either grasp or you don't.</td></tr>
+    <tr><td>r_nav</td><td>−‖x_robot − x_goal‖</td><td>Penalizes distance between robot base and goal shelf position. Guides locomotion toward the correct aisle location.</td></tr>
+    <tr><td>r_upright</td><td>cos(θ_torso)</td><td>cos(0°)=1 (perfectly upright), cos(90°)=0 (fallen over). Rewards maintaining vertical torso during the reach phase — prevents leaning into the shelf.</td></tr>
+    <tr><td>r_shelf_clear</td><td>−𝟙[collision with shelf]</td><td>−1 for any contact with the shelf structure or adjacent products during the arm's approach trajectory. Prevents sweeping items off shelves.</td></tr>
+  </tbody>
+</table>
+
+<h3>8.3 Regularization (r_reg) — "Be efficient and smooth"</h3>
+
+<div class="formula">
+<span class="var">r_reg</span> = −λₑ ‖τ‖²   <span class="comment">← penalize high torque (energy waste)</span>
+         −λⱼ |q̈|    <span class="comment">← penalize jerk (sudden acceleration)</span>
+         −λ_f · r_foot_slide   <span class="comment">← penalize foot sliding</span>
+</div>
+
+<ul>
+  <li><strong>Torque penalty (‖τ‖²):</strong> Prevents the policy from using excessive motor force. High torque drains batteries fast and stresses joints — important for a retail robot that runs 8+ hour shifts.</li>
+  <li><strong>Jerk penalty (|q̈|):</strong> Jerk is the rate of change of acceleration. High jerk means sudden, jerky motion — rough on hardware and unsettling to nearby humans. Penalizing it produces smoother, more natural-looking motion.</li>
+  <li><strong>Foot slide penalty:</strong> Directly discourages the foot sliding artifact discussed in Section 6. Even if the physics cleaner removed it from the reference, the RL policy might reintroduce it — this penalty keeps it eliminated.</li>
+</ul>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>9 · The PD Controller — Why It's in the Loop</h2>
+
+<p>The RL policy doesn't directly command motor torques. Instead it outputs <strong>desired joint positions</strong>, and a PD (Proportional-Derivative) controller converts these into actual torques sent to the motors:</p>
+
+<div class="formula">
+τ = <span class="var">kₚ</span>(aₜ − qₜ)  −  <span class="var">k_d</span> q̇ₜ
+</div>
+
+<table class="term-table">
+  <thead><tr><th>Symbol</th><th>Meaning</th><th>Physical analogy</th></tr></thead>
+  <tbody>
+    <tr><td>aₜ</td><td>Desired joint position (policy output)</td><td>Where you want the joint to be</td></tr>
+    <tr><td>qₜ</td><td>Actual current joint position</td><td>Where the joint currently is</td></tr>
+    <tr><td>aₜ − qₜ</td><td>Position error</td><td>How far off you are</td></tr>
+    <tr><td>kₚ</td><td>Proportional gain</td><td>Spring stiffness — larger kₚ = stiffer, faster correction</td></tr>
+    <tr><td>k_d q̇ₜ</td><td>Derivative term (velocity damping)</td><td>Damper that slows the joint down as it approaches target, preventing overshoot and oscillation</td></tr>
+    <tr><td>τ</td><td>Output torque to the motor</td><td>How hard to push the joint</td></tr>
+  </tbody>
+</table>
+
+<div class="intuition">
+The PD controller is like a spring-damper attached to the joint. The spring (kₚ) pulls the joint toward the desired position with force proportional to how far away it is. The damper (k_d) resists fast motion to prevent overshooting. The RL policy just says "go here" — the PD controller handles the low-level force control at 1000 Hz.
+</div>
+
+<p><strong>Why this split?</strong> The RL policy runs at 30–50 Hz (neural network inference is slow). The PD controller runs at 1000 Hz (hardware rate). This lets the policy operate at a comfortable frequency while the controller handles fast disturbance rejection. It also means the same RL policy can transfer to real hardware more easily — sim and real robots share the same PD controller structure.</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>10 · Teacher-Student Distillation — Intuition</h2>
+
+<h3>The problem: what the robot can sense vs. what helps training</h3>
+<p>During RL training in simulation, we can give the policy <em>any information</em> — the exact positions of all products, the precise shelf layout map, the robot's exact state without sensor noise. This is called <strong>privileged information</strong> because it's available in simulation but not on the real robot (which only has its own cameras and joint sensors).</p>
+<p>Training with privileged information produces a much better, more stable policy. But we can't deploy that policy on the real robot because it depends on information the robot doesn't have.</p>
+
+<h3>The solution: teach then distill</h3>
+<ol>
+  <li><strong>Train a Teacher policy</strong> with full privileged state — it knows everything. This converges faster and reaches higher performance.</li>
+  <li><strong>Train a Student policy</strong> to imitate the Teacher, but using only the information a real robot has: depth camera image + proprioception (joint angles, velocities). The student learns to extract the same behavioral signals from raw sensory input that the teacher got handed directly.</li>
+</ol>
+
+<div class="intuition">
+The teacher is an all-knowing exam tutor; the student is the actual exam candidate. The tutor solves every problem perfectly because they have the answer key. Then they teach the student to reach the same answers using only the information available in the exam room.
+</div>
+
+<h3>Reference State Initialization (RSI)</h3>
+<p>Instead of always starting RL episodes from a standing position, RSI starts episodes from random points <em>in the middle</em> of the reference motion — the robot is initialized mid-reach, mid-walk, mid-squat. This forces the policy to learn recovery from arbitrary intermediate states, not just from standing. It's especially important for retail's fluid transitions: walk → decelerate → squat → reach → grasp → stand → walk.</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>11 · Center of Mass and the Support Polygon</h2>
+
+<h3>Center of Mass (COM)</h3>
+<p>The <strong>center of mass</strong> is the single 3D point that represents the weighted average position of all mass in the body. For a humanoid, it's typically around the lower belly/pelvis area when standing upright. Every time a limb moves, the COM shifts slightly.</p>
+
+<h3>Support Polygon</h3>
+<p>The <strong>support polygon</strong> is the 2D area on the ground enclosed by the robot's contact points with the floor. When both feet are flat on the ground, the support polygon is roughly the rectangle between the feet. During single-leg stance (mid-step), it shrinks to the area under one foot.</p>
+
+<h3>Balance condition</h3>
+<p>A robot (or person) is statically balanced if and only if the <strong>vertical projection of the COM falls inside the support polygon</strong>. If the COM projects outside the polygon, the robot topples in that direction.</p>
+
+<div class="intuition">
+Stand on one foot and lean sideways — you feel yourself about to fall the moment your body's weight center passes outside your planted foot's area. That's your COM leaving the support polygon.
+</div>
+
+<p>This is why COM is a key-point in the retargeting formulation — if the retargeting moves the robot's limbs without accounting for COM position, the robot may end up in a pose that looks like the human but is statically unstable for the robot's different mass distribution.</p>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2>12 · Glossary</h2>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Action Space <span class="glossary-abbr">aₜ</span></div>
+  <div class="glossary-def">The set of all possible outputs from the RL policy at each timestep. In this framework: desired joint positions for all 43 DoF of the robot, output at 30–50 Hz.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">AMASS</div>
+  <div class="glossary-def">Archive of Motion Capture as Surface Shapes. A large dataset unifying 15 optical MoCap collections into a common SMPL format. 40+ hours, 300+ subjects, 11,000+ motion clips. Primary locomotion data source for the retail pipeline.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">AMP — Adversarial Motion Priors</div>
+  <div class="glossary-def">An RL reward formulation (Peng et al. 2021) that uses a GAN-style discriminator to provide a style reward — the policy is rewarded for producing motion that looks human-like, without manually defining what "human-like" means. Reduces reward engineering effort.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Center of Mass <span class="glossary-abbr">COM</span></div>
+  <div class="glossary-def">The single 3D point representing the weighted average position of all mass in a body. Must project within the support polygon for the robot to remain balanced. One of the key tracked points in the retargeting IK formulation.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Curriculum Learning</div>
+  <div class="glossary-def">A training strategy where easy tasks are presented first and difficulty increases gradually as the policy improves. For retail retargeting: train on mid-height shelf reach (easy) before full-height reach while balancing on low-friction tile (hard).</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">DeepMimic</div>
+  <div class="glossary-def">A foundational paper (Peng et al. 2018) showing that RL policies can learn physics-based motion by imitating kinematic reference trajectories using an exponential reward function. The imitation reward formulation in these slides is directly derived from DeepMimic.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Degrees of Freedom <span class="glossary-abbr">DoF</span></div>
+  <div class="glossary-def">The number of independent axes along which a joint can move. A hinge joint has 1 DoF. A ball-and-socket joint has 3 DoF. The Unitree G1 has 43 total actuated DoF.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Embodiment Gap</div>
+  <div class="glossary-def">The collective set of differences between a source body (human) and a target body (robot) that prevent direct motion transfer: morphological mismatch, DoF mismatch, different mass distribution, and different actuator limits.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">EMHI</div>
+  <div class="glossary-def">Egocentric Multi-view Human Interaction dataset. 885 sequences, 58 subjects, 39 actions (~28.5 hours). Captured via VR headset + body IMUs with SMPL annotations. Provides first-person retail shelf-reach scenarios.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Forward Kinematics <span class="glossary-abbr">FK</span></div>
+  <div class="glossary-def">Given joint angles, compute where end-effectors end up in 3D space. Always has a unique answer. Computed via a chain of transformation matrices up the kinematic tree.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">GAE — Generalized Advantage Estimation</div>
+  <div class="glossary-def">A variance-reduction technique used with PPO. Instead of using raw rewards to estimate how good an action was, GAE uses a smoothed estimate that balances bias and variance. Makes PPO training more stable.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">GCN — Graph Convolutional Network</div>
+  <div class="glossary-def">A neural network architecture where the input is a graph (e.g., a skeleton where joints are nodes and bones are edges). For retargeting: a GCN takes the human skeleton as input and learns to output robot-compatible joint angles, trained once and applied to any new motion clip.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">HaMeR (HAWOR)</div>
+  <div class="glossary-def">Hand Mesh Recovery model. Takes image input and recovers a dense 3D hand mesh plus the full 6-DoF wrist pose (position + orientation). Used in DreamVu's SABER pipeline to complement MediaPipe — MediaPipe provides 21 joint landmarks efficiently but its wrist orientation estimate is unreliable; HaMeR/HAWOR provides accurate wrist 6-DoF.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Inverse Kinematics <span class="glossary-abbr">IK</span></div>
+  <div class="glossary-def">Given a desired end-effector position in 3D space, find joint angles that achieve it. Typically has infinitely many solutions (or none if out of reach). Solved via optimization in this retargeting framework.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">IsaacGym / Isaac Lab</div>
+  <div class="glossary-def">NVIDIA's GPU-accelerated physics simulation environment for robot learning. Can run 4096+ parallel simulation instances simultaneously, enabling RL training at scales not possible with CPU-based simulators.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Jerk</div>
+  <div class="glossary-def">The rate of change of acceleration (third derivative of position with respect to time). High jerk means sudden, jerky motion. Penalized in r_reg to produce smoother, hardware-friendly, and human-natural-looking motion.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Joint Limits</div>
+  <div class="glossary-def">Hard mechanical bounds on how far a robot's servo can rotate. Defined in the URDF file. Unlike a human's soft ROM, these are absolute — commanding beyond them causes hardware damage or simulation instability.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Kinematic Chain</div>
+  <div class="glossary-def">The sequence of joints from the root (pelvis/base) to an end-effector (wrist, ankle). Each joint's position depends on all joints above it in the chain. FK traverses this chain root→tip; IK works tip→root.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">MediaPipe Hands</div>
+  <div class="glossary-def">Google's real-time hand tracking model. Detects 21 landmarks per hand from video input. Provides normalized image-space coordinates and world-space metric coordinates (multi_hand_world_landmarks). Used in EXP-002 and the SABER pipeline. Limitation: wrist orientation estimate is unreliable — supplemented by HaMeR.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">MDP — Markov Decision Process</div>
+  <div class="glossary-def">The formal mathematical framework for RL. Defined by state space S, action space A, reward function R, and transition dynamics T (how the environment evolves after an action). "Markov" means the future depends only on the current state, not the history.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">MoCap — Motion Capture</div>
+  <div class="glossary-def">Technology for recording human body motion at high precision. Optical MoCap uses reflective markers tracked by infrared cameras. IMU-based MoCap uses accelerometers/gyroscopes worn on the body. Output is typically 3D joint positions over time at 30–120 Hz.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">PD Controller — Proportional-Derivative</div>
+  <div class="glossary-def">A low-level controller that converts desired joint positions into motor torques: τ = kₚ(a−q) − k_d q̇. The proportional term (kₚ) drives the joint toward the target; the derivative term (k_d) damps oscillation. Runs at hardware rate (1000 Hz) while the RL policy runs at 30–50 Hz.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">PHC — Perpetual Humanoid Control</div>
+  <div class="glossary-def">An RL framework (Luo et al. 2023) that scales to the full AMASS dataset (11,000+ motions) without needing residual force correction. Uses a kinematic retargeting pre-process and a hierarchical controller. State-of-the-art for SMPL-based motion imitation.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Policy <span class="glossary-abbr">π</span></div>
+  <div class="glossary-def">The neural network that maps observed state to action: π(aₜ | sₜ). After RL training, this is the "brain" of the robot. At inference time on real hardware, it runs 30–50 times per second.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">PPO — Proximal Policy Optimization</div>
+  <div class="glossary-def">The standard RL training algorithm for continuous control. Updates the policy parameters to increase expected reward, but with a "trust region" constraint (the proximal part) that prevents large destabilizing updates. Combined with GAE and run across thousands of parallel simulation environments.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Privileged Information</div>
+  <div class="glossary-def">Information available during simulation-based training that is not available at deployment on real hardware. Examples: exact product positions, ground-truth shelf geometry, robot state without sensor noise. The Teacher policy uses it; the Student policy does not.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Range of Motion <span class="glossary-abbr">ROM</span></div>
+  <div class="glossary-def">The biological range through which a joint can move. Soft constraint for humans (muscle/tendon limits). In SMPL, ROM is not formally enforced — any pose angle can be set mathematically, even if anatomically implausible.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">ReActor</div>
+  <div class="glossary-def">A retargeting framework (arxiv 2605.06593) that closes the loop between retargeting and RL training: retarget → simulate → measure artifact severity → re-optimize retargeting. Produces cleaner references than one-shot IK retargeting.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Reference State Initialization <span class="glossary-abbr">RSI</span></div>
+  <div class="glossary-def">An RL training technique where episodes are initialized at random points in the middle of a reference motion clip, not just from standing. Forces the policy to learn recovery from arbitrary intermediate states — critical for fluid skill transitions in retail.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">SABER</div>
+  <div class="glossary-def">DreamVu's proprietary in-house retail motion capture dataset. Generated from egocentric and third-person retail environment video using MediaPipe Hands (21-joint landmarks) and HaMeR/HAWOR (dense hand mesh + wrist 6-DoF). The only dataset natively aligned to DreamVu's target scenes and Unitree G1 embodiment. See EXP-002.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">SAGA</div>
+  <div class="glossary-def">Stochastic whole-body Grasping with contacts. A dataset capturing diverse whole-body object interaction (pick-up, carry, place) in SMPL-X format with hand-level detail. Used as Layer C in the retail dataset strategy for product grasping diversity.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Sim2Real Transfer</div>
+  <div class="glossary-def">The process of deploying a policy trained in simulation onto real hardware. The "reality gap" (differences between sim and real dynamics) can cause trained policies to fail on real robots. Addressed via domain randomization, physics parameter matching, and teacher-student distillation.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">SMPL — Skinned Multi-Person Linear model</div>
+  <div class="glossary-def">The standard parametric human body model. Represents a 3D human with shape parameters β (10 dims, body proportions) and pose parameters θ (72 dims, joint rotations for 24 joints). Outputs a mesh of ~6,890 vertices. Used as the universal human representation in MoCap datasets (AMASS, EMHI, etc.).</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">SMPL-X</div>
+  <div class="glossary-def">Extended version of SMPL that adds 15 joints per hand (finger-level) and facial expressions. Required for manipulation tasks where individual finger poses matter. Used in Motion-X and SAGA datasets.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Support Polygon</div>
+  <div class="glossary-def">The 2D convex hull of a robot's contact points with the ground. The robot is statically balanced if and only if the vertical projection of the COM falls within this polygon. Shrinks to one foot area during single-leg stance.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Teacher-Student Distillation</div>
+  <div class="glossary-def">A two-phase training strategy. Phase 1: train a Teacher policy with privileged information (converges fast, high performance). Phase 2: train a Student policy using only real-robot-available inputs to mimic the Teacher's behavior. The Student is what gets deployed.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">URDF — Unified Robot Description Format</div>
+  <div class="glossary-def">An XML file format that fully specifies a robot's physical structure: link geometries, masses, inertia tensors, joint types, joint limits, and collision meshes. Used by simulators (IsaacGym, MuJoCo) and the ROS ecosystem to model and simulate robots.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">VIRAL</div>
+  <div class="glossary-def">Vision-based Imitation and Reinforcement learning for Agile Loco-manipulation (He et al. 2025). Teacher-student framework specifically for long-horizon loco-manipulation tasks. Achieves 54 continuous manipulation cycles zero-shot on real hardware. Architectural inspiration for the retail humanoid pipeline.</div>
+</div>
+
+<div class="glossary-entry">
+  <div class="glossary-term">Whole-Body Control <span class="glossary-abbr">WBC</span></div>
+  <div class="glossary-def">A control paradigm that coordinates all joints of a humanoid simultaneously to achieve multiple objectives (locomotion + manipulation) without them fighting each other. The RL policy in this framework implicitly learns whole-body coordination through the combined imitation + task reward.</div>
+</div>
+
+<!-- Footer -->
+<div style="margin-top:48px; padding-top:16px; border-top:1px solid #e5e7eb; font-size:9.5pt; color:#9ca3af; text-align:center;">
+  DreamVu Robotics · Motion Retargeting Companion Guide · 2026 · Companion to the 25-slide RL Framework presentation
+</div>
+
+</body>
+</html>

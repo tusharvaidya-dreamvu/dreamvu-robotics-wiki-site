@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>realitySipred: Gaussian Splats for 3D Assets & Real2Sim</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --border: #2a2a4a;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --highlight-bg: #1e1b4b;
+  --highlight-border: #7c3aed;
+  --green: #22c55e;
+  --red: #ef4444;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+/* ── Slide container ── */
+#deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(40px);
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev { transform: translateX(-40px); }
+
+.slide-inner {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 56px 72px 48px;
+  overflow: hidden;
+}
+.slide-inner.centered { align-items: center; justify-content: center; text-align: center; }
+
+/* ── Progress ── */
+.progress-bar { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+.slide-counter {
+  position: absolute; bottom: 18px; right: 28px;
+  font-size: 13px; color: var(--text-muted); letter-spacing: 0.05em;
+}
+
+/* ── Nav buttons ── */
+#nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; }
+.nav-btn {
+  padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+#slide-num { padding: 10px 16px; color: var(--text-muted); font-size: 14px; align-self: center; }
+
+/* ── Title slide ── */
+.slide-title { background: radial-gradient(ellipse at 60% 40%, #1e1040 0%, var(--bg) 70%); }
+.title-badge {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  background: rgba(124,58,237,0.2); border: 1px solid var(--accent);
+  font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.title-main { font-size: clamp(32px, 5vw, 64px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 20px; }
+.title-sub { font-size: clamp(16px, 2vw, 22px); color: var(--text-muted); margin-bottom: 24px; }
+.slide-meta { font-size: 14px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* ── Section slide ── */
+.slide-section { background: linear-gradient(135deg, #1a0a40 0%, var(--bg) 100%); }
+.section-label {
+  font-size: 13px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+.section-title { font-size: clamp(28px, 4vw, 52px); font-weight: 700; }
+
+/* ── Common slide heading ── */
+.slide-title { font-size: clamp(20px, 2.5vw, 32px); font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.slide-intro { font-size: 16px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+/* ── Bullets ── */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.bullet-list li {
+  padding: 12px 16px 12px 44px; position: relative;
+  background: var(--surface); border-radius: 8px; border: 1px solid var(--border);
+  font-size: clamp(13px, 1.4vw, 16px); line-height: 1.55; color: var(--text);
+}
+.bullet-list li::before {
+  content: "→"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-weight: 700;
+}
+.bullet-list li strong { color: var(--accent2); }
+.bullet-list li code { background: rgba(124,58,237,0.2); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; }
+
+/* ── Highlight box ── */
+.highlight-box {
+  margin-top: 16px; padding: 14px 18px;
+  background: var(--highlight-bg); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; font-size: clamp(13px, 1.3vw, 15px);
+  color: #c4b5fd; line-height: 1.6;
+}
+
+/* ── Stats ── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 20px; text-align: center;
+}
+.stat-value { font-size: clamp(24px, 3vw, 40px); font-weight: 800; color: var(--accent2); margin-bottom: 8px; }
+.stat-label { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── Two column ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.col-title {
+  font-size: 15px; font-weight: 600; color: var(--accent2);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px;
+}
+
+/* ── Table ── */
+.table-note { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(12px, 1.2vw, 14px); }
+thead tr { background: var(--accent); }
+thead th { padding: 10px 14px; text-align: left; font-weight: 600; color: white; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 9px 14px; color: var(--text-muted); }
+tbody td strong { color: var(--accent2); font-weight: 600; }
+tbody tr:last-child td { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<div class="slide slide-title" data-index="0">
+  <div class="slide-inner centered">
+    <div class="title-badge">Project Brief</div>
+    <h1 class="title-main">realitySipred</h1>
+    <p class="title-sub">Gaussian Splats for 3D Assets & the Real2Sim Pipeline</p>
+    <div class="slide-meta">DreamVu Research · 2026</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:2.9%"></div></div><div class="slide-counter">1 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="1">
+  <div class="slide-inner">
+    <h2 class="slide-title">Agenda</h2>
+    
+    <ul class="bullet-list"><li>What is a Gaussian Splat, and why does it matter for us</li><li>Project goal: real-world capture → usable simulation assets</li><li>Why the DreamVu Alia Pro camera is our advantage in generating splats</li><li>Strategy: how we out-flank the competitor benchmark</li><li>Progress so far — what's actually working today</li><li>Phase 1 experiments — done and pending</li><li>Phase 2 — from splats to simulation-ready, physics-interactable assets</li><li>Splat-world vs. mesh-world: the strategic product bet</li><li>Non-rigid objects and 4D Gaussian Splatting</li><li>Hardware & systems roadmap</li><li>Proposed team structure</li><li>API / microservices release plan</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:5.9%"></div></div><div class="slide-counter">2 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="2">
+  <div class="slide-inner centered">
+    <div class="section-label">Background</div>
+    <h2 class="section-title">What Is a Gaussian Splat?</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:8.8%"></div></div><div class="slide-counter">3 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="3">
+  <div class="slide-inner">
+    <h2 class="slide-title">3D Gaussian Splatting, in Plain Terms</h2>
+    <p class="slide-intro">A relatively new scene representation (2023) — worth grounding before anything else.</p>
+    <ul class="bullet-list"><li>A real scene is represented as <strong>millions of tiny 3D Gaussians</strong> (soft, fuzzy blobs), each with a position, orientation/scale (an ellipsoid), a color, and an opacity</li><li>Trained from ordinary posed photos/video — no depth sensor or LiDAR required, though extra sensors help (see next section)</li><li>Rendered with a fast, <strong>differentiable rasterizer</strong> — new camera viewpoints can be synthesized in real time, at photorealistic quality</li><li><strong>Not a mesh:</strong> no fixed topology, no polygons — this is exactly what makes it fast and photoreal, and exactly what makes physics/robotics use cases harder (more on this later)</li></ul>
+    <div class="highlight-box">Think of it as the representation between a photo and a 3D model — it looks and moves like real 3D, but doesn't have the structure a game engine or physics engine expects.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:11.8%"></div></div><div class="slide-counter">4 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="4">
+  <div class="slide-inner centered">
+    <div class="section-label">Project</div>
+    <h2 class="section-title">realitySipred — Goal</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:14.7%"></div></div><div class="slide-counter">5 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="5">
+  <div class="slide-inner">
+    <h2 class="slide-title">What We're Trying to Do</h2>
+    <p class="slide-intro">realitySipred — the name is a nod to 'reality': turning captured reality into something usable downstream.</p>
+    <ul class="bullet-list"><li>Convert <strong>real-world captures</strong> into <strong>usable 3D assets</strong> — not just a pretty viewer scene</li><li>Primary consumer: <strong>robotics data generation and training</strong> — synthetic-but-grounded-in-reality rollouts</li><li>Secondary consumers: other <strong>simulation use cases</strong> wherever a real environment needs to become a simulatable one</li></ul>
+    <div class="highlight-box">The bar is not 'does it look good' — it's 'can a robot policy be trained or evaluated against it.'</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:17.6%"></div></div><div class="slide-counter">6 / 34</div>
+</div>
+
+<div class="slide slide-two-col" data-index="6">
+  <div class="slide-inner">
+    <h2 class="slide-title">Two-Phase Structure</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Phase 1 — Capture & Generate</h3><ul class="bullet-list"><li>Get a convincing, high-fidelity Gaussian Splat from real-world capture</li><li>Handle the practical mess: rectification, dynamic objects, blur, sync</li><li>Explore every sensor modality the capture rig offers, not just RGB</li></ul></div>
+      <div class="col"><h3 class="col-title">Phase 2 — Sim-Ready Conversion</h3><ul class="bullet-list"><li>Turn a static splat into an asset that can be perturbed and interacted with</li><li>Add physics-based manipulation directly on the splat representation</li><li>Generate diverse, varied training data from one real capture</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:20.6%"></div></div><div class="slide-counter">7 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="7">
+  <div class="slide-inner centered">
+    <div class="section-label">Advantage</div>
+    <h2 class="section-title">Why the DreamVu Alia Pro Camera</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:23.5%"></div></div><div class="slide-counter">8 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="8">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Alia Pro as a Splat-Generation Advantage</h2>
+    <p class="slide-intro">Most Gaussian Splat pipelines in the wild are built on RGB-only image sets. We don't have to be.</p>
+    <ul class="bullet-list"><li>Alia Pro captures <strong>stereo depth, IMU, and multi-camera rig geometry</strong> alongside RGB — all in one device</li><li>These aren't just "extra data" — they're strong <strong>priors</strong> that a pure-RGB pipeline has to instead recover the hard way (structure-from-motion alone, no ground truth scale or gravity reference)</li><li>Rig extrinsics are known by construction, not estimated — a meaningfully different starting point than a single moving camera</li></ul>
+    <div class="highlight-box">Every modality below is something a competitor's RGB-only rig doesn't have access to at all.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:26.5%"></div></div><div class="slide-counter">9 / 34</div>
+</div>
+
+<div class="slide slide-table" data-index="9">
+  <div class="slide-inner">
+    <h2 class="slide-title">Beyond RGB: The Modality Strategy</h2>
+    <p class="table-note">This is the core of how we intend to out-flank a pure-RGB competitor benchmark — not a better RGB algorithm, but strictly more signal than RGB alone provides.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Modality</th><th>What it gives the splat pipeline</th><th>Status</th></tr></thead><tbody><tr><td>RGB (mono/multi video)</td><td>Base photometric signal — what every competitor pipeline runs on</td><td><strong>Explored</strong></td></tr><tr><td>IMU</td><td>Gravity/orientation reference, motion prior for SLAM, cross-check for pose drift</td><td><strong>Explored</strong></td></tr><tr><td>Rig extrinsics (multi-camera)</td><td>Known relative camera poses as a prior for splat generation, not just estimated</td><td><strong>Explored</strong>, augmented with IMU</td></tr><tr><td>Depth (stereo)</td><td>Direct metric geometry — should sharply reduce splat noise/ambiguity vs. RGB-only</td><td>Pending</td></tr><tr><td>Semantic (SAM segmentation)</td><td>Object-level structure for later splat editing, object insertion, and asset separation</td><td>Planned (Phase 2 dependency)</td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:29.4%"></div></div><div class="slide-counter">10 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="10">
+  <div class="slide-inner centered">
+    <div class="section-label">Status</div>
+    <h2 class="section-title">Progress So Far</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:32.4%"></div></div><div class="slide-counter">11 / 34</div>
+</div>
+
+<div class="slide slide-stats" data-index="11">
+  <div class="slide-inner">
+    <h2 class="slide-title">Where We Actually Are Today</h2>
+    <div class="stat-grid"><div class="stat-card"><div class="stat-value">Achieved</div><div class="stat-label">Convincingly good splats (human-in-the-loop edit + aesthetic tuning)</div></div><div class="stat-card"><div class="stat-value">Achieved</div><div class="stat-label">Physics-based manipulation directly on a splat (rigid-body bounce demo)</div></div><div class="stat-card"><div class="stat-value">EXP-005/006/007</div><div class="stat-label">Underlying experiments — see wiki for full detail + live links</div></div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:35.3%"></div></div><div class="slide-counter">12 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="12">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Honest Caveat Behind "Achieved"</h2>
+    
+    <ul class="bullet-list"><li>Convincingly good splats currently <strong>assume a human in the loop</strong> to edit and tune for aesthetics — not yet a push-button pipeline</li><li>Physics-based manipulation (EXP-007) is demonstrated at the <strong>rigid-body-proxy</strong> tier — cheapest of three cost tiers, correct choice for "falls/bounces/collides," not yet deformation</li><li>Both are real, working, and conclusive at their current scope — the caveats define next steps, not doubts about the result</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:38.2%"></div></div><div class="slide-counter">13 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="13">
+  <div class="slide-inner centered">
+    <div class="section-label">Phase 1</div>
+    <h2 class="section-title">Experiments — Completed</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:41.2%"></div></div><div class="slide-counter">14 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="14">
+  <div class="slide-inner">
+    <h2 class="slide-title">Done: Mono-Video Splat Pipeline</h2>
+    
+    <ul class="bullet-list"><li><strong>Image rectification</strong> — handled</li><li><strong>Dynamic objects</strong> in the scene — handled</li><li><strong>Motion blur</strong> — handled</li><li><strong>SLAM fine-tuned</strong> for this capture pipeline specifically, not used off-the-shelf</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:44.1%"></div></div><div class="slide-counter">15 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="15">
+  <div class="slide-inner">
+    <h2 class="slide-title">Done: Multi-Sensor & Multi-Camera</h2>
+    
+    <ul class="bullet-list"><li><strong>IMU as a modality</strong> — explored as a gravity/orientation reference and pose cross-check</li><li><strong>Multi-video feeds from a camera rig</strong> — explored, not just single-camera capture</li><li><strong>Rig extrinsics</strong> — explored and used as a <strong>prior for splat generation</strong> (not just a downstream correction)</li><li>Rig extrinsics <strong>augmented with IMU</strong> for a combined pose correction — the natural next step once both were independently validated</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:47.1%"></div></div><div class="slide-counter">16 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="16">
+  <div class="slide-inner centered">
+    <div class="section-label">Phase 1</div>
+    <h2 class="section-title">Experiments — Open</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:50.0%"></div></div><div class="slide-counter">17 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="17">
+  <div class="slide-inner">
+    <h2 class="slide-title">Pending / Unexplored</h2>
+    
+    <ul class="bullet-list"><li><strong>Depth-based modality</strong> (stereo) — not yet explored for splat generation, expected to directly reduce geometric noise/ambiguity</li><li><strong>Surface-based splats</strong> (e.g. 2D Gaussian Splatting / surfels) — remaining to explore, may better suit flat/planar real-world surfaces (tables, floors, walls) than volumetric 3DGS</li><li><strong>Beta Splatting</strong> — any concrete advantage over standard Gaussian splatting is still unverified for our use case</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:52.9%"></div></div><div class="slide-counter">18 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="18">
+  <div class="slide-inner">
+    <h2 class="slide-title">Relighting — The Hardest Open Problem</h2>
+    <p class="slide-intro">Not unique to us — this is an unsolved industry-wide problem today.</p>
+    <ul class="bullet-list"><li>A splat bakes in the lighting/shading of the <strong>environment it was captured in</strong></li><li>Insert a foreign object (any asset not captured in that same lighting) and it visibly looks <strong>"alien"</strong> — its shading doesn't match the scene's light sources</li><li>No robust general relighting solution exists in the field today — this constrains any "insert a new object into a real scene" workflow, not just ours</li></ul>
+    <div class="highlight-box">This is a real, current limitation to be upfront about — not something we expect to solve incidentally as a side effect of other work.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:55.9%"></div></div><div class="slide-counter">19 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="19">
+  <div class="slide-inner centered">
+    <div class="section-label">Phase 2</div>
+    <h2 class="section-title">Splats → Simulation-Ready Assets</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:58.8%"></div></div><div class="slide-counter">20 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="20">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Phase 2 Problem</h2>
+    <p class="slide-intro">Phase 1 gets a good-looking splat. Phase 2 makes it usable for data generation.</p>
+    <ul class="bullet-list"><li>Goal: capture data sets across <strong>all the variation/perturbation</strong> a real-world capture alone can't give you</li><li>First working capability: <strong>physics-based manipulation on the splat itself</strong> (EXP-007) — an object falls, bounces, picks up spin, directly composited into the real captured splat world</li><li>This validates the direction: physics does <strong>not</strong> require first converting the scene to a mesh</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:61.8%"></div></div><div class="slide-counter">21 / 34</div>
+</div>
+
+<div class="slide slide-two-col" data-index="21">
+  <div class="slide-inner">
+    <h2 class="slide-title">Splat-World vs. Mesh-World for Physics</h2>
+    <div class="two-col">
+      <div class="col"><h3 class="col-title">Splat-Based Physics (our primary bet)</h3><ul class="bullet-list"><li>No lossy splat→mesh conversion step needed</li><li>Keeps the real captured visual fidelity throughout</li><li>Rigid-body-proxy transform reapplication is cheap and already demonstrated working</li><li>Newer ground — less tooling, but also less IP/competitive lock-in against us</li></ul></div>
+      <div class="col"><h3 class="col-title">Mesh-Based Physics (secondary offering)</h3><ul class="bullet-list"><li>Industry-standard — mature physics engines, asset pipelines, Isaac/Omniverse tooling</li><li>Heavily dominated by existing players and their IP — hard to differentiate on</li><li>Still useful and requested by some customers — kept ready, not abandoned</li><li>Explored in parallel (EXP-006): RANSAC plane fits, convex-hull slabs, USD export</li></ul></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:64.7%"></div></div><div class="slide-counter">22 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="22">
+  <div class="slide-inner">
+    <h2 class="slide-title">The Strategic Call</h2>
+    
+    <ul class="bullet-list"><li>This is a product-positioning decision as much as a technical one — worth surfacing explicitly, not just letting the tech direction imply it</li><li>Both pipelines share upstream capture/sensor work (Phase 1) — this is not a duplicated effort, just a fork at the asset-conversion stage</li></ul>
+    <div class="highlight-box">Keep splat-based physics-manipulation as our **primary product direction** — it's where the competitive landscape is least dominated by incumbent IP. Keep the mesh-based pipeline maintained and ready as a **secondary offering** for customers who specifically need it.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:67.6%"></div></div><div class="slide-counter">23 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="23">
+  <div class="slide-inner centered">
+    <div class="section-label">Phase 2</div>
+    <h2 class="section-title">Next Challenge: Non-Rigid Objects</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:70.6%"></div></div><div class="slide-counter">24 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="24">
+  <div class="slide-inner">
+    <h2 class="slide-title">Rigid-Body-Proxy Isn't Enough on Its Own</h2>
+    <p class="slide-intro">EXP-007 validates rigid motion (falls, bounces, collides) directly on a splat. Real-world manipulation scenes are not all rigid.</p>
+    <ul class="bullet-list"><li>The rigid-body-proxy formula reapplies <strong>one transform to every Gaussian</strong> in an object — correct for a rigid ball or box, wrong for anything that bends, folds, or stretches</li><li>Cloth, soft/deformable produce, flexible tooling, and general non-rigid manipulation targets are common in real robotics scenes — this is a core gap, not an edge case, for making splat-based physics feel intuitive and close to real-world behavior</li><li>Closing this gap is what actually determines whether Phase 2 output is broadly useful for manipulation data generation, not just rigid pick-and-place</li></ul>
+    <div class="highlight-box">**4D Gaussian Splatting (4D-GS)** — Gaussians extended with a learned time-varying/deformation component — is the accurate answer here: it models non-rigid motion natively inside the splat representation itself, rather than bolting a separate mesh/cage-and-skinning step on top of a static splat.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:73.5%"></div></div><div class="slide-counter">25 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="25">
+  <div class="slide-inner centered">
+    <div class="section-label">Roadmap</div>
+    <h2 class="section-title">Hardware & Systems</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:76.5%"></div></div><div class="slide-counter">26 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="26">
+  <div class="slide-inner">
+    <h2 class="slide-title">What's Next on the Capture Side</h2>
+    
+    <ul class="bullet-list"><li><strong>Camera firmware design for IMU-based sparse SLAM</strong> — pushing the SLAM/IMU fusion work (Phase 1) down into firmware rather than post-processing</li><li><strong>Height-changing mechanism</strong> on our in-house robot platform — for capturing genuinely diverse viewpoints of the same scene, not just diverse locations</li><li><strong>True stereo with hardware trigger</strong> — explored as a possibility for tighter stereo depth sync than software-triggered capture allows</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:79.4%"></div></div><div class="slide-counter">27 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="27">
+  <div class="slide-inner">
+    <h2 class="slide-title">Open Challenges Carried Into Phase 2</h2>
+    
+    <ul class="bullet-list"><li>Splat-based vs. mesh-based world tradeoffs for physics interaction — an ongoing evaluation, not a one-time decision</li><li>Relighting remains unsolved and will keep limiting object-insertion realism until addressed (by us or the field)</li><li>Human-in-the-loop aesthetic tuning is still required for "convincingly good" results — reducing that dependency is an open problem, not yet started</li></ul>
+    
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:82.4%"></div></div><div class="slide-counter">28 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="28">
+  <div class="slide-inner centered">
+    <div class="section-label">Resourcing</div>
+    <h2 class="section-title">Proposed Team Structure</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:85.3%"></div></div><div class="slide-counter">29 / 34</div>
+</div>
+
+<div class="slide slide-table" data-index="29">
+  <div class="slide-inner">
+    <h2 class="slide-title">Proposed Team Structure</h2>
+    <p class="table-note">7 dedicated roles, plus a shared systems resource across the team.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Role</th><th>Count</th><th>Notes</th></tr></thead><tbody><tr><td>Forward Engineers</td><td>2</td><td>Pipeline/production engineering</td></tr><tr><td>Research Scientists</td><td>2</td><td>Splat generation, modality fusion, non-rigid/4D-GS research</td></tr><tr><td>Human-in-the-Loop Experts</td><td>3</td><td>One of the three also serves as <strong>Lead Simulation Expert</strong></td></tr><tr><td>Systems Experts</td><td>Shared</td><td>Pooled resource across the team, not dedicated headcount</td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:88.2%"></div></div><div class="slide-counter">30 / 34</div>
+</div>
+
+<div class="slide slide-section" data-index="30">
+  <div class="slide-inner centered">
+    <div class="section-label">Engineering</div>
+    <h2 class="section-title">API / Microservices Release Plan</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:91.2%"></div></div><div class="slide-counter">31 / 34</div>
+</div>
+
+<div class="slide slide-bullets" data-index="31">
+  <div class="slide-inner">
+    <h2 class="slide-title">Principle: Services, Not Shared Scripts</h2>
+    <p class="slide-intro">How the team consumes each other's work, day to day.</p>
+    <ul class="bullet-list"><li>We will <strong>not</strong> share raw code between team members to rerun locally — every capability is consumed as an <strong>internally-hosted API</strong>, not a script someone else has to clone and re-execute</li><li>One hosted service per capability means one source of truth — no drift between "whoever last edited the script" copies of the same pipeline</li><li>Onboarding a new team member (or a new consuming team) means pointing them at an API, not walking them through someone else's experiment repo</li></ul>
+    <div class="highlight-box">This turns EXP-005/006/007's experiment scripts into productized internal services, not one-off research code.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:94.1%"></div></div><div class="slide-counter">32 / 34</div>
+</div>
+
+<div class="slide slide-table" data-index="32">
+  <div class="slide-inner">
+    <h2 class="slide-title">Planned Internal Microservices</h2>
+    <p class="table-note">Each is an API surface over an existing experiment/pipeline — not new research, a release/productization step on top of it.</p>
+    <div class="table-wrap">
+      <table><thead><tr><th>Service</th><th>What it exposes</th><th>Built on</th></tr></thead><tbody><tr><td>Splat Generation API</td><td>Generate a splat from a capture via <strong>config parameters</strong> (modality mix, quality tier, source rig) instead of hand-editing a script</td><td>Phase 1 capture pipeline (EXP-005)</td></tr><tr><td>Physics Property Editor</td><td>Set/tune rigid-body properties on a splat object (mass, restitution, friction, collider shape) through an editor/API, not hardcoded constants</td><td>Phase 2 physics pipeline (EXP-007)</td></tr><tr><td>Human-in-the-Loop Correction Interface</td><td>Turns splat aesthetic review/correction into a <strong>supported interface</strong>, not the ad hoc manual step it is today</td><td>The human-in-the-loop caveat behind "convincingly good splats"</td></tr></tbody></table>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:97.1%"></div></div><div class="slide-counter">33 / 34</div>
+</div>
+
+<div class="slide slide-title" data-index="33">
+  <div class="slide-inner centered">
+    <div class="title-badge">Project Brief</div>
+    <h1 class="title-main">Discussion</h1>
+    <p class="title-sub">realitySipred — Gaussian Splats for 3D Assets & Real2Sim</p>
+    <div class="slide-meta">See EXP-005 / EXP-006 / EXP-007 in the wiki for full experiment detail and live demo links</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100.0%"></div></div><div class="slide-counter">34 / 34</div>
+</div>
+</div>
+<div id="nav">
+  <button class="nav-btn" id="btn-prev">← Prev</button>
+  <span id="slide-num">1 / 34</span>
+  <button class="nav-btn" id="btn-next">Next →</button>
+</div>
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+document.getElementById('btn-prev').onclick = () => go(cur - 1);
+document.getElementById('btn-next').onclick = () => go(cur + 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// Touch / swipe
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+});
+
+go(0);
+</script>
+</body>
+</html>

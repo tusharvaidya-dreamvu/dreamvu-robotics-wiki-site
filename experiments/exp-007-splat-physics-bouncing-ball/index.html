@@ -1,0 +1,2180 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Experiment tracking, research, and architecture for DreamVu">
+      
+      
+      
+        <link rel="canonical" href="https://tusharvaidya-dreamvu.github.io/dreamvu-robotics-wiki-site/experiments/exp-007-splat-physics-bouncing-ball/">
+      
+      
+        <link rel="prev" href="../exp-006-splat-blender-usd-scene/">
+      
+      
+        <link rel="next" href="../_template/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>EXP-007: Physics Directly on Splats - DreamVu Project Wiki</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exp-007-real2sim-rigid-body-physics-directly-on-a-gaussian-splat" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DreamVu Project Wiki" class="md-header__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DreamVu Project Wiki
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              EXP-007: Physics Directly on Splats
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Experiments
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../theory/" class="md-tabs__link">
+          
+  
+  
+  Theory & Research
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decisions/" class="md-tabs__link">
+          
+  
+  
+  Decision Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../presentations/" class="md-tabs__link">
+          
+  
+  
+  Presentations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tags/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tags
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DreamVu Project Wiki" class="md-nav__button md-logo" aria-label="DreamVu Project Wiki" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DreamVu Project Wiki
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dreamvu-robotics-wiki
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-001-groot-n16-isaac-robobench/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-001: GR00T N1.6 Isaac Robobench
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-002-mediapipe-hand-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-002: MediaPipe → Unitree G1
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-003-saber-gt003-groot-finetune/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-003: SABER GT003 → GR00T N1.7
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-005-multicam-gaussian-splatting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-005: Multi-Cam Gaussian Splatting
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exp-006-splat-blender-usd-scene/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-006: Splat → Blender → USD Scene
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-007: Physics Directly on Splats
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EXP-007: Physics Directly on Splats
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-floorceiling-detection-found-inverted-corrected-by-direct-visual-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Floor/ceiling detection — found inverted, corrected by direct visual check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-camera-framing-verified-offline-before-wiring-into-any-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Camera framing verified offline before wiring into any viewer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-first-pass-canvas2d-stand-in-reference-demo-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. First pass: Canvas2D stand-in (reference-demo tier)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-production-pass-native-playcanvas-gsplatcomponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Production pass: native PlayCanvas GSplatComponent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-visual-parity-with-supersplats-own-editor-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Visual parity with SuperSplat's own editor defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template (copy me)
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--active"></span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory & Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory & Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../theory/realitysipred/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    realitySipred
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decision Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Presentations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Presentations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/egodex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EgoDex (ICLR 2026)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/sonic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SONIC (2025)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/motion-retargeting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion Retargeting — RL Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/groot-n1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GR00T N1 — Architecture & N1.6 vs N1.7
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../presentations/realitysipred/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    realitySipred — Gaussian Splats for Real2Sim
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hypothesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hypothesis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Method">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-floorceiling-detection-found-inverted-corrected-by-direct-visual-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Floor/ceiling detection — found inverted, corrected by direct visual check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-camera-framing-verified-offline-before-wiring-into-any-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Camera framing verified offline before wiring into any viewer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-first-pass-canvas2d-stand-in-reference-demo-tier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. First pass: Canvas2D stand-in (reference-demo tier)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-production-pass-native-playcanvas-gsplatcomponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Production pass: native PlayCanvas GSplatComponent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-visual-parity-with-supersplats-own-editor-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Visual parity with SuperSplat's own editor defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#impediments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impediments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evaluation Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-learned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Learned
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">experiment</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">gaussian-splatting</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">physics</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">playcanvas</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">real2sim</span>
+      
+    
+  </nav>
+
+
+  
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/edit/main/docs/experiments/exp-007-splat-physics-bouncing-ball.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/tusharvaidya-dreamvu/dreamvu-robotics-wiki/raw/main/docs/experiments/exp-007-splat-physics-bouncing-ball.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="exp-007-real2sim-rigid-body-physics-directly-on-a-gaussian-splat">EXP-007: Real2Sim — Rigid-Body Physics Directly on a Gaussian Splat<a class="headerlink" href="#exp-007-real2sim-rigid-body-physics-directly-on-a-gaussian-splat" title="Permanent link">&para;</a></h1>
+<p><strong>Owner:</strong> Tushar Vaidya
+<strong>Start Date:</strong> 2026-09-15
+<strong>Last Updated:</strong> 2026-09-15
+<strong>Status:</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 2.03v2.02c4.39.54 7.5 4.53 6.96 8.92-.46 3.64-3.32 6.53-6.96 6.96v2c5.5-.55 9.5-5.43 8.95-10.93-.45-4.75-4.22-8.5-8.95-8.97m-2 .03c-1.95.19-3.81.94-5.33 2.2L7.1 5.74c1.12-.9 2.47-1.48 3.9-1.68zM4.26 5.67A9.9 9.9 0 0 0 2.05 11h2c.19-1.42.75-2.77 1.64-3.9zM2.06 13c.2 1.96.97 3.81 2.21 5.33l1.42-1.43A8 8 0 0 1 4.06 13zm5.04 5.37-1.43 1.37A10 10 0 0 0 11 22v-2a8 8 0 0 1-3.9-1.63M12.5 7v5.25l4.5 2.67-.75 1.23L11 13V7z"/></svg></span> Active — successful, conclusive first demo (rigid-body-proxy tier); production-fidelity splat rendering achieved</p>
+<hr />
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Test whether 3D/physics properties (a falling, bouncing rigid body) can be added <strong>directly on a Gaussian Splat representation</strong> — without first converting the scene to a mesh — and rendered convincingly in the same splat world the scene was captured in.</p>
+<p>This is a direct alternative to the mesh-conversion direction explored in prior weeks (see <a href="#background">Background</a>): rather than extracting mesh/USD geometry from splats (as in <a href="../exp-006-splat-blender-usd-scene/">EXP-006</a>) and running physics on that mesh, this experiment keeps the environment as a native Gaussian Splat and adds a physics-driven rigid body into that same representation.</p>
+<hr />
+<h2 id="hypothesis">Hypothesis<a class="headerlink" href="#hypothesis" title="Permanent link">&para;</a></h2>
+<ol>
+<li>A rigid-body-proxy formulation — simulate a single point mass/collider, reapply its transform (<code>pos</code>, <code>quat</code>) to every Gaussian in an object each frame — is sufficient to demonstrate physically plausible motion (falling, bouncing, spin-on-impact) without needing continuum (MPM) or mesh/cage+skinning approaches.</li>
+<li>A real captured splat scene's floor plane can be identified and used as collision geometry for this physics, without converting the scene to mesh first.</li>
+<li>The result can be rendered with the same visual fidelity as viewing the scene directly in SuperSplat, by using the same underlying renderer (PlayCanvas's <code>GSplatComponent</code>) rather than an approximation.</li>
+</ol>
+<p>All three held. (2) required correcting a floor/ceiling detection inversion bug along the way — see <a href="#method">Method</a>.</p>
+<hr />
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<p>Over the preceding weeks, the real2sim physics investigation was mostly directed at the <strong>mesh-conversion path</strong>: extract mesh/USD geometry from a splat (RANSAC plane fits, convex-hull slabs, Poisson reconstruction — see <a href="../exp-006-splat-blender-usd-scene/">EXP-006</a>), then apply physics/rigid-body setup to that mesh (e.g. in Isaac Sim). Those results were shared with Rajat on a call last Friday (2026-09-12); the verdict on that direction was non-conclusive, with several open issues discussed (mesh fidelity from sparse splat samples, texture baking quality, lack of real asset libraries for added objects).</p>
+<p>The approach in this experiment — apply physics <strong>directly on the splat representation itself</strong>, via a rigid-body-proxy transform reapplied to Gaussians (or, in this specific demo, to a synthetic rigid mesh composited into the same splat-rendered scene) — was initially discussed with Rajat, and the formulation was walked through with Parikshit on 2026-09-15 (same day). This experiment is the first working, conclusive demonstration of that direction.</p>
+<div class="highlight"><pre><span></span><code>Restaurant scene (SuperSplat "Manica SkyView", scene.ply, 4.97M Gaussians)
+        ↓
+Crop to full room (radius-based crop around the dining area) → room_crop.ply (1.31M Gaussians)
+        ↓
+Floor/ceiling plane detection — corrected after an inversion bug (see Method §1)
+        ↓
+Rigid-body-proxy physics (gravity, floor collision, restitution, spin-on-impact)
+        ↓
+Composited into the real splat world via PlayCanvas's native GSplatComponent
+   (same engine SuperSplat's own editor runs on)
+</code></pre></div>
+<hr />
+<h2 id="method">Method<a class="headerlink" href="#method" title="Permanent link">&para;</a></h2>
+<h3 id="1-floorceiling-detection-found-inverted-corrected-by-direct-visual-check">1. Floor/ceiling detection — found inverted, corrected by direct visual check<a class="headerlink" href="#1-floorceiling-detection-found-inverted-corrected-by-direct-visual-check" title="Permanent link">&para;</a></h3>
+<p>An earlier automatic floor detection (used to build a tighter <code>table_crop.ply</code>) picked the wrong one of two candidate horizontal planes as "floor." The bug was caught by the user directly inspecting the scene, not by any statistic — the same lesson from EXP-006 §5 recurred here: <strong>a rendered image resolves floor/ceiling ambiguity faster and more reliably than height-histogram statistics</strong>, which were genuinely ambiguous in this case (both candidate planes had a large, sharp, "most of the room on one side" density signature — the very feature that was supposed to make one of them clearly the floor).</p>
+<p>The decisive check was a real side-view scatter render of <code>room_crop.ply</code>, colored by actual per-Gaussian color:</p>
+<ul>
+<li>Pendant lights hang <strong>down</strong> from the plane at raw <code>y ≈ -2.865</code> → this is the <strong>ceiling</strong>.</li>
+<li>Tables and chairs physically <strong>rest on</strong> the plane at raw <code>y ≈ -0.293</code> → this is the <strong>floor</strong>.</li>
+</ul>
+<p>Corrected values: floor <code>y = -0.2927</code>, ceiling <code>y = -2.8647</code>, room height 2.57 m — a physically sane restaurant ceiling height, consistent with the fix. Physical "up" in this scene's raw coordinates is <code>-Y</code>, not <code>+Y</code> (opposite of the naive default assumption).</p>
+<figure>
+<p><img alt="Side view confirming true floor vs ceiling" src="../images/exp-007-splat-physics-bouncing-ball/room-side-view.png" />
+  </p>
+<figcaption>Side view of room_crop.ply, real per-Gaussian color. Pendant lights hang from the top plane (ceiling); tables/chairs rest on the bottom-of-frame plane (floor) — settles the inversion directly, no statistics needed.</figcaption>
+</figure>
+<h3 id="2-camera-framing-verified-offline-before-wiring-into-any-viewer">2. Camera framing verified offline before wiring into any viewer<a class="headerlink" href="#2-camera-framing-verified-offline-before-wiring-into-any-viewer" title="Permanent link">&para;</a></h3>
+<p>Rather than iterating blind in-browser, camera eye/target positions were sanity-checked with an offline Python projection render against the real <code>room_crop.ply</code> data (same look-at math intended for the live demo), to confirm the room reads right-side-up (ceiling+lights up top, pillars, tables/chairs on the floor) before committing to a live page.</p>
+<figure>
+<p><img alt="Verified camera framing preview" src="../images/exp-007-splat-physics-bouncing-ball/camera-preview.png" />
+  </p>
+<figcaption>Offline projection preview against real room_crop.ply data — ceiling and pendant lights up top, pillars and tables/chairs on the floor, confirming the corrected orientation before publishing.</figcaption>
+</figure>
+<h3 id="3-first-pass-canvas2d-stand-in-reference-demo-tier">3. First pass: Canvas2D stand-in (reference-demo tier)<a class="headerlink" href="#3-first-pass-canvas2d-stand-in-reference-demo-tier" title="Permanent link">&para;</a></h3>
+<p>Following a prior-session methodology doc's own reference-demo pattern, a first version rendered real per-Gaussian data (position, color, effective isotropic radius from the geometric mean of the two largest scale axes, opacity) as flat/radial-gradient circles on a Canvas2D, with a procedural sphere-of-splats "ball" falling under hand-rolled gravity/bounce physics.</p>
+<p>This version worked functionally (correct floor collision, correct spin-on-impact, correct back-to-front depth sort for alpha blending) but looked visually disproportionate — flat circles standing in for true anisotropic Gaussians don't carry real scale/shape information, so splats looked "too big" relative to the real world. This was expected and explicitly flagged as a stand-in tier, not a defect.</p>
+<h3 id="4-production-pass-native-playcanvas-gsplatcomponent">4. Production pass: native PlayCanvas <code>GSplatComponent</code><a class="headerlink" href="#4-production-pass-native-playcanvas-gsplatcomponent" title="Permanent link">&para;</a></h3>
+<p>The Canvas2D approximation was replaced with the actual splat renderer: <code>room_crop.ply</code> is loaded, full-resolution and unmodified, as a native <code>gsplat</code> asset in a PlayCanvas application — the same engine SuperSplat's own editor is built on. This eliminates the "too big" issue entirely, since every Gaussian is now rendered with its true scale, rotation, and opacity by the real rasterizer, not an approximation.</p>
+<p>The ball is a rigid-body proxy per the core formula:</p>
+<div class="highlight"><pre><span></span><code>world_position[i] = pos + R(quat) * local_offset[i]     // reapplied every frame
+</code></pre></div>
+<p>implemented here as a single rigid mesh entity (a sphere) whose position/rotation is driven by hand-rolled gravity + floor-collision + restitution + rolling-friction-to-spin physics (no external physics engine dependency — this is the "rigid-body proxy" cost tier, cheapest of the three tiers considered: continuum/MPM, mesh+cage skinning, rigid-body proxy).</p>
+<h3 id="5-visual-parity-with-supersplats-own-editor-defaults">5. Visual parity with SuperSplat's own editor defaults<a class="headerlink" href="#5-visual-parity-with-supersplats-own-editor-defaults" title="Permanent link">&para;</a></h3>
+<p>To make the composited result match what viewing <code>room_crop.ply</code> directly in SuperSplat (<code>superspl.at/editor?load=...</code>) looks like, the demo's camera/render settings were pulled directly from SuperSplat's own <code>scene-config.ts</code> defaults rather than left at arbitrary values:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>SuperSplat default</th>
+<th>Applied here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FOV</td>
+<td>85°</td>
+<td>85°</td>
+</tr>
+<tr>
+<td>Background</td>
+<td>pure black</td>
+<td>pure black</td>
+</tr>
+<tr>
+<td>Tone mapping</td>
+<td>linear</td>
+<td>linear (<code>TONEMAP_LINEAR</code>)</td>
+</tr>
+<tr>
+<td>Exposure</td>
+<td>1.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>Floor grid</td>
+<td>shown</td>
+<td>approximated via <code>app.drawLine()</code> at the corrected floor height</td>
+</tr>
+</tbody>
+</table>
+<p>The splat rendering itself was already identical (same <code>GSplatComponent</code>); this pass matches the surrounding camera/render settings so the overall look matches too. SuperSplat's own editor UI chrome (selection tools, bounding-box overlay, its bespoke orbit-camera implementation) is app-specific code, not reproduced — the grid is a visual approximation, not a literal reuse of SuperSplat's renderer.</p>
+<hr />
+<h2 id="impediments">Impediments<a class="headerlink" href="#impediments" title="Permanent link">&para;</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Current Blockers</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> The ball is a synthetic rigid mesh composited alongside the real splats, not itself a segmented cluster of real Gaussians — full per-Gaussian rigid-body treatment (segment a real round object's own splats, compute local offsets, reapply transform to each) has not yet been demonstrated on a real object, only on this synthetic stand-in</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> No real physics engine (cannon-es / Rapier / PhysX / ammo.js) is wired in yet — gravity/bounce/friction is hand-rolled, sufficient for a single sphere vs. a flat plane but won't extend to general collider shapes or multi-object contact</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>room_crop.ply</code> is 310 MB; the production PlayCanvas demo takes under ~2 minutes to load on a typical connection — acceptable for a demo, not yet optimized (e.g. via PlayCanvas's newer SOG compressed format)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SuperSplat's own editor UI chrome (bounding-box overlay, selection tools, its bespoke camera controller) is not reproduced — only the render-relevant settings (FOV, tonemap, exposure, background, grid) were matched</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Known Risks</p>
+<ul>
+<li>Floor/ceiling detection from height-density statistics alone was genuinely ambiguous on this scene (§1) — any future automatic floor detection should budget for a direct visual confirmation render, not trust a statistical heuristic alone, even one that looks decisive (large weight, sharp peak, "most points on one side")</li>
+<li>The corrected floor/up convention (<code>-Y</code> is physically up) is specific to this scene's own raw coordinate convention and was derived empirically, not from any metadata — a different scene/export could have the opposite or a different-axis convention entirely</li>
+</ul>
+</div>
+<hr />
+<h2 id="evaluation-protocol">Evaluation Protocol<a class="headerlink" href="#evaluation-protocol" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Metric:</strong> qualitative — physical plausibility of motion (falls under gravity, bounces with energy loss, picks up spin on impact, settles/loops) and visual fidelity (does the splat rendering match viewing the same file directly in SuperSplat)</li>
+<li><strong>Real environment:</strong> restaurant scene ("Manica SkyView" sample), full-room crop including floor, ceiling, pillars, and multiple table+chair groups</li>
+</ul>
+<hr />
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<p><strong>Conclusive:</strong> 3D/physics properties can be added directly on the Gaussian Splat representation and used — the ball falls, bounces on the real detected floor plane, and picks up spin on impact, composited live into the same real, full-resolution splat world visible in SuperSplat, with matching camera/render settings.</p>
+<p><strong>Deliverables:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://superspl.at/editor?load=https%3A%2F%2Fmodified-sunday-products-platform.trycloudflare.com%2Froom_crop.ply">Splat world (SuperSplat editor)</a></td>
+<td>The generated/cropped Gaussian Splat world (<code>room_crop.ply</code>, 1.31M Gaussians, floor+ceiling+pillars+tables+chairs), viewable and interactable directly in SuperSplat</td>
+</tr>
+<tr>
+<td><a href="https://modified-sunday-products-platform.trycloudflare.com/bouncing_ball_playcanvas.html">Bouncing ball demo (PlayCanvas)</a></td>
+<td>The same splat world loaded via native <code>GSplatComponent</code>, with a physics-driven rigid-body ball bouncing on the corrected floor. <strong>Takes under ~2 minutes to load</strong> (full-resolution 310 MB splat)</td>
+</tr>
+</tbody>
+</table>
+<p>Both are served from a <code>cloudflared</code> tunnel over the project's own CORS-enabled file server; see <a href="#references">References</a> for the underlying files.</p>
+<hr />
+<h2 id="lessons-learned">Lessons Learned<a class="headerlink" href="#lessons-learned" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>A rendered image settles floor/ceiling ambiguity faster than statistics, even when the statistics look decisive.</strong> Both candidate planes here had a large, sharp density peak with "most of the room on one side" — exactly the signature a naive heuristic would call conclusive — and it still picked the wrong one. This is the same lesson as EXP-006 §5, now confirmed on a second, independent scene: default to a direct visual check before trusting an automatic floor/orientation classifier.</li>
+<li><strong>Verify camera framing offline before shipping a live viewer.</strong> An earlier iteration of a splat-world crop needed a "kill it, start over" cycle after the user found the framing unconvincing; sanity-checking eye/target positions with an offline projection render against the real data first avoided repeating that cycle here.</li>
+<li><strong>A Canvas2D stand-in for splats is fine for validating physics logic, but looks wrong at real-world scale.</strong> Flat/radial-gradient circles don't carry true per-Gaussian scale/anisotropy, so proportions look "too big" even when the underlying position/opacity data and physics are correct. Swapping to the real renderer (PlayCanvas <code>GSplatComponent</code>) fixed this immediately, since it's the same rasterizer SuperSplat itself uses.</li>
+<li><strong>Matching a target viewer's look is mostly about matching its concrete render settings, not reimplementing its UI.</strong> Pulling FOV/exposure/tonemap/background straight from SuperSplat's own <code>scene-config.ts</code> defaults got the demo visually in line with SuperSplat's editor without needing to reproduce its editor chrome (grid was approximated, bounding-box/selection UI was not attempted).</li>
+<li><strong>The rigid-body-proxy tier (single transform reapplied each frame) is sufficient to demonstrate "physics on splats" convincingly</strong> without needing a full physics engine or continuum/mesh-skinning approach — validates the cheapest of the three tiers considered as the right starting point for this class of demo.</li>
+</ul>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Segment a real round object's own Gaussians from a captured scene (rather than a synthetic ball) and apply the same rigid-body-proxy formula to its actual per-Gaussian local offsets, to validate the full pipeline on real object data, not just a stand-in</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Wire in a real physics engine (cannon-es or Rapier, per the methodology doc's own recommendation) to support general colliders and multi-object contact, beyond a single hand-rolled sphere-vs-plane case</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Evaluate PlayCanvas's newer SOG compressed splat format to cut the ~2-minute load time for <code>room_crop.ply</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Compare this direction head-to-head against the mesh-conversion direction (EXP-006) on the same scene/object, to give Rajat/Parikshit a like-for-like basis for the meeting discussion</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Extend beyond rigid motion if a use case needs deformation (would require moving to the mesh/cage+skinning tier, per the methodology doc — rigid-proxy doesn't extend to soft-body directly)</li>
+</ul>
+<hr />
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Prior mesh-conversion direction: <a href="../exp-006-splat-blender-usd-scene/">EXP-006</a> — same "floor/ceiling ambiguity resolved by direct visual check" lesson recurred independently on this scene</li>
+<li>Restaurant source scene: SuperSplat sample "Manica SkyView" (<code>scene.ply</code>, 4.97M Gaussians)</li>
+<li>PlayCanvas engine <code>GSplatComponent</code> / SuperSplat editor (<code>playcanvas/supersplat</code>, <code>playcanvas/engine</code>) — same renderer used for both the interactive splat-world link and the bouncing-ball demo</li>
+<li>Working files: <code>/data/fast/workspaces/tushar/alia16k_capture2/cam4_single/restaurant/</code> — <code>room_crop.ply</code>, <code>floor_meta_corrected.npz</code>, <code>bouncing_ball_demo.html</code> (Canvas2D reference tier), <code>bouncing_ball_playcanvas.html</code> (production tier)</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../exp-006-splat-blender-usd-scene/" class="md-footer__link md-footer__link--prev" aria-label="Previous: EXP-006: Splat → Blender → USD Scene">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                EXP-006: Splat → Blender → USD Scene
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../_template/" class="md-footer__link md-footer__link--next" aria-label="Next: Template (copy me)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Template (copy me)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

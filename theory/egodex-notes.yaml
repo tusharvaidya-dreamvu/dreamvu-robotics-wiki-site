@@ -1,0 +1,215 @@
+meta:
+  title: "EgoDex: Learning Dexterous Manipulation from Large-Scale Egocentric Video"
+  subtitle: Paper Review — DreamVu Research
+  date: "2026-05-21"
+  theme: dark
+
+slides:
+
+  - type: title
+    title: "EgoDex"
+    subtitle: "Learning Dexterous Manipulation from Large-Scale Egocentric Video"
+    meta: "Hoque, Huang, Yoon, Sivapurapu, Zhang · Apple · ICLR 2026"
+
+  - type: section
+    label: "Context"
+    title: "The Data Problem in Manipulation"
+
+  - type: bullets
+    title: "The Bitter Lesson in Robot Learning"
+    intro: "Scale drives breakthroughs in NLP and vision — but manipulation lacks Internet-scale corpora."
+    points:
+      - "**Teleoperation** (DROID, RT-X): labor-intensive, hardware-dependent, fundamentally unscalable"
+      - "**Internet video** (Ego4D, EPIC-KITCHENS): no precise dexterous annotations, no motor action labels"
+      - "**Prior egocentric work** (EgoMimic): ~4 hours, wrist-position only, just 3 tasks"
+    highlight: "No existing source combines scale + dexterous annotation + language + camera calibration."
+
+  - type: bullets
+    title: "EgoDex: Core Idea"
+    intro: "Egocentric human video + 3D hand pose = passively scalable manipulation data."
+    points:
+      - "Everyday people performing natural tasks — no robot hardware, no expert operators"
+      - "Apple Vision Pro provides production-grade 25-joint hand tracking on-device"
+      - "Collection scales like Internet video, not like teleoperation"
+    highlight: "Same paradigm shift that Common Crawl gave NLP — applied to dexterous manipulation."
+
+  - type: section
+    label: "Dataset"
+    title: "EgoDex Dataset"
+
+  - type: stats
+    title: "Dataset at a Glance"
+    stats:
+      - value: "829 hrs"
+        label: "of 1080p egocentric video"
+      - value: "338K"
+        label: "demonstrations"
+      - value: "90M"
+        label: "frames at 30 Hz"
+      - value: "194"
+        label: "unique manipulation tasks"
+      - value: "25"
+        label: "finger joints tracked per hand"
+      - value: "2.0 TB"
+        label: "compressed (500+ TB raw)"
+
+  - type: bullets
+    title: "Collection Hardware: Apple Vision Pro"
+    points:
+      - "High-res passthrough cameras, wide field of view, 1920×1080 @ 30 Hz"
+      - "ARKit on-device SLAM — known camera intrinsics & extrinsics at 30 Hz"
+      - "Production-grade 25-joint hand tracking — no gloves, no markers, bare hands"
+      - "Per-joint confidence scores for occlusion/uncertainty flagging"
+      - "GPT-4 pipeline refines noisy raw task metadata into clean language descriptions"
+
+  - type: bullets
+    title: "194 Tasks: What's Covered"
+    intro: "Organized into three reset categories:"
+    points:
+      - "**Reversible (76 pairs):** charging/uncharging, stacking/unstacking, folding/unfolding"
+      - "**Reset-free (28):** ball throwing, card dealing — final state ≈ initial state"
+      - "**Reset tasks (14):** pick-place requiring manual environment reset"
+    highlight: "Examples: shoelace tying, laundry folding, furniture assembly (FurnitureBench), board games (Reversi), knitting, jigsaw puzzles, blow-drying hair."
+
+  - type: table
+    title: "How EgoDex Compares"
+    note: "EgoDex is the only dataset combining language + extrinsics + dexterous annotation at scale."
+    headers: ["Dataset", "Traj.", "Tasks", "Frames", "Lang", "Cam Ext", "Dexterous", "Type"]
+    rows:
+      - ["DROID", "76K", "86", "19M", "✓", "✓", "✗", "Teleop"]
+      - ["EPIC-KITCHENS", "40K", "125", "12M", "✓", "✗", "✗", "Egocentric"]
+      - ["Ego4D (HOI)", "89K", "—", "21M", "✓", "✗", "✗", "Egocentric"]
+      - ["**EgoDex**", "**338K**", "**194**", "**90M**", "**✓**", "**✓**", "**✓**", "**Egocentric**"]
+
+  - type: section
+    label: "Method"
+    title: "Benchmarks & Models"
+
+  - type: two_column
+    title: "48-Dim Action Space"
+    left_title: "Per Hand (× 2)"
+    left_points:
+      - "3D wrist position"
+      - "6D wrist orientation"
+      - "3D position × 5 fingertips"
+      - "= 24 dims per hand"
+    right_title: "Full Action Vector"
+    right_points:
+      - "2 hands × 24 = 48 dimensions"
+      - "Expressed as relative trajectory chunks"
+      - "In camera frame coordinates"
+      - "Prediction horizon H timesteps"
+
+  - type: two_column
+    title: "Two Evaluation Benchmarks"
+    left_title: "Trajectory Prediction"
+    left_points:
+      - "Input: egocentric images, poses, language"
+      - "Output: next H=60 timesteps (2 seconds)"
+      - "Tests open-ended multimodal generation"
+      - "Evaluates diverse completion strategies"
+    right_title: "Inverse Dynamics (Goal-Conditioned)"
+    right_points:
+      - "Input: same + goal image at t+H"
+      - "Output: intermediate trajectories"
+      - "Visual anchor resolves multimodality"
+      - "More constrained, easier problem"
+
+  - type: bullets
+    title: "Model Architectures & Policy Types"
+    intro: "2 architectures × 3 policy representations = 6 main variants"
+    points:
+      - "**Dec (Decoder-only):** single causal transformer processes all inputs concatenated"
+      - "**EncDec (Encoder-Decoder):** ResNet image encoder + CLIP text encoder → cross-attention → causal decoder"
+      - "**BC (Behavior Cloning):** deterministic regression — one prediction per input"
+      - "**DDPM:** stochastic diffusion, 16 denoising steps"
+      - "**Flow Matching (FM):** continuous normalizing flows, 16 sampling steps"
+    highlight: "Training: 50K steps, batch 2048, 8× A100 80GB, ~72 hours."
+
+  - type: section
+    label: "Results"
+    title: "Key Findings"
+
+  - type: table
+    title: "Main Results: Trajectory Prediction (H=60, 2 sec)"
+    note: "Metric: Best-of-K Euclidean distance (meters) across 12 keypoints. Lower is better."
+    headers: ["Model", "K=1 Avg", "K=5 Avg", "K=10 Avg", "K=1 Final", "K=10 Final"]
+    rows:
+      - ["Dec + BC", "0.045", "0.045", "0.045", "0.062", "0.062"]
+      - ["Dec + DDPM", "0.053", "0.044", "0.041", "0.071", "0.044"]
+      - ["Dec + FM", "0.052", "0.042", "0.040", "0.071", "0.043"]
+      - ["EncDec + BC", "**0.044**", "0.044", "0.044", "**0.060**", "0.060"]
+      - ["EncDec + DDPM", "0.052", "0.042", "0.039", "0.071", "0.043"]
+      - ["**EncDec + FM**", "0.051", "**0.041**", "**0.038**", "0.070", "**0.041**"]
+
+  - type: bullets
+    title: "The Best-of-K Insight"
+    intro: "Single-sample (K=1) evaluation systematically underrates stochastic policies."
+    points:
+      - "**BC wins at K=1** — deterministic model nails the average mode"
+      - "**FM/DDPM win at K≥5** — stochastic models cover the full multimodal distribution"
+      - "EncDec+FM achieves **~34% improvement** over BC at K=10"
+      - "Human manipulation is inherently multimodal — multiple valid ways to complete any task"
+    highlight: "Takeaway: if you benchmark dexterous policies with K=1 only, you are measuring the wrong thing."
+
+  - type: two_column
+    title: "What Else Was Ablated"
+    left_title: "Goal Conditioning (Inv. Dynamics)"
+    left_points:
+      - "No goal image: avg 0.045 m, final 0.062 m"
+      - "With goal image: avg **0.035 m**, final **0.029 m**"
+      - "→ 53% reduction in final-position error"
+      - "Visual anchor strongly resolves multimodality"
+    right_title: "Prediction Horizon"
+    right_points:
+      - "H=30 (1s): avg 0.031 m, final 0.049 m"
+      - "H=60 (2s): avg 0.045 m, final 0.062 m"
+      - "H=90 (3s): avg 0.053 m, final 0.069 m"
+      - "~18% error increase per additional second"
+
+  - type: bullets
+    title: "Scaling & OOD Generalization"
+    points:
+      - "**Data scaling:** monotonic improvement from small fractions → full 829 hrs — no saturation observed"
+      - "**Model size:** 200M vs 500M parameters — identical performance. Data bottleneck, not model size."
+      - "**OOD tasks:** Jigsaw Puzzle +4% degradation vs. baseline; Stamp Paper +156% degradation"
+      - "Semantic distance from training distribution predicts OOD error well"
+    highlight: "More data always helps. Scale up collection, not model size — for now."
+
+  - type: section
+    label: "Implications"
+    title: "Limitations & So What"
+
+  - type: bullets
+    title: "Limitations"
+    points:
+      - "**Embodiment gap:** human hand trajectories cannot be directly executed on robot hardware"
+      - "**Scene diversity:** mostly tabletop environments, limited background variation"
+      - "**Annotation quality:** tracking degrades during heavy occlusion or very fast motions"
+      - "**No temporal history:** current models see only the current frame, not a sequence"
+      - "**No object state:** no 6D object pose tracking — only hand motion is annotated"
+
+  - type: bullets
+    title: "Bridging the Gap: Future Directions"
+    intro: "The paper explicitly calls out the embodiment gap as the key open challenge."
+    points:
+      - "Co-training with robot data (human pretraining → robot fine-tuning)"
+      - "Visual encoder and manipulation prior transfer via RL/IL"
+      - "Scene augmentation with generative models"
+      - "Egocentric world models — noted as a 'substantial research gap'"
+    highlight: "For DreamVu: EgoDex pretraining + DreamVu robot data fine-tuning → direct parallel to GR00T workflow."
+
+  - type: bullets
+    title: "Why This Paper Matters"
+    points:
+      - "**Scale:** 829 hrs / 338K demos / 194 tasks — largest dexterous manipulation dataset by 4–8×"
+      - "**Paradigm shift:** passive egocentric collection as the analogue of Common Crawl for robotics"
+      - "**Evaluation insight:** Best-of-K reveals stochastic policies are systematically underrated"
+      - "**No saturation:** data scaling curves say more collection still pays off"
+      - "**Foundation model path:** if embodiment gap is bridged, EgoDex = ImageNet for dexterous manipulation"
+    highlight: "\"If the embodiment gap can be bridged, EgoDex could play for robotics the role that ImageNet played for vision or Common Crawl played for language.\""
+
+  - type: title
+    title: "Thank You"
+    subtitle: "Questions?"
+    meta: "EgoDex · Hoque et al. · Apple · ICLR 2026 · arxiv 2505.11709"

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GR00T N1 — Architecture Deep-Dive & N1.6 vs N1.7</title>
+<style>
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --border: #2a2a4a;
+  --accent: #76b900;   /* NVIDIA green */
+  --accent2: #06b6d4;
+  --accent3: #7c3aed;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --highlight-bg: #0f1f00;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+#deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateX(40px);
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.prev { transform: translateX(-40px); }
+
+.slide-inner { flex: 1; display: flex; flex-direction: column; padding: 44px 60px 36px; overflow: hidden; }
+.slide-inner.centered { align-items: center; justify-content: center; text-align: center; }
+
+.progress-bar { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+.slide-counter { position: absolute; bottom: 18px; right: 28px; font-size: 13px; color: var(--text-muted); }
+
+#nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; }
+.nav-btn { padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer; transition: background 0.2s; }
+.nav-btn:hover { background: var(--accent3); border-color: var(--accent3); }
+#slide-num { padding: 10px 16px; color: var(--text-muted); font-size: 14px; align-self: center; }
+
+/* Title */
+.slide-title-hero { background: radial-gradient(ellipse at 55% 40%, #0a1f00 0%, var(--bg) 65%); }
+.title-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; background: rgba(118,185,0,0.15); border: 1px solid var(--accent); font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; }
+.title-main { font-size: clamp(28px, 4vw, 52px); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px; }
+.title-sub { font-size: clamp(13px, 1.6vw, 18px); color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+.slide-meta { font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 14px; }
+
+/* Section */
+.slide-section { background: linear-gradient(135deg, #0a1a00 0%, var(--bg) 100%); }
+.section-label { font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+.section-title { font-size: clamp(26px, 3.5vw, 46px); font-weight: 700; }
+
+/* Headings */
+h2.slide-title { font-size: clamp(17px, 2vw, 26px); font-weight: 700; margin-bottom: 14px; }
+.slide-intro { font-size: clamp(12px, 1.2vw, 14px); color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+
+/* Bullets */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.bullet-list li { padding: 9px 13px 9px 38px; position: relative; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); font-size: clamp(11px, 1.2vw, 13px); line-height: 1.5; }
+.bullet-list li::before { content: "→"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 700; }
+.bullet-list li strong { color: var(--accent2); }
+.bullet-list.tight { gap: 6px; }
+.bullet-list.tight li { padding: 7px 11px 7px 34px; font-size: clamp(10px, 1.05vw, 12px); }
+
+/* Highlight boxes */
+.highlight-box { margin-top: 12px; padding: 11px 15px; background: var(--highlight-bg); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; font-size: clamp(11px, 1.15vw, 13px); color: #b6f07a; line-height: 1.6; }
+.highlight-box.blue { border-color: var(--accent2); color: #67e8f9; background: #001820; }
+.highlight-box.purple { border-color: var(--accent3); color: #c4b5fd; background: #1e1b4b; }
+.highlight-box.orange { border-color: var(--orange); color: #fcd34d; background: #1c1408; }
+
+/* Two/Three col */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex: 1; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.col-title { font-size: 12px; font-weight: 600; color: var(--accent); padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Table */
+.table-note { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(10px, 1.05vw, 12px); }
+thead tr { background: var(--accent); }
+thead th { padding: 8px 11px; text-align: left; font-weight: 600; color: #000; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: var(--surface); }
+tbody td { padding: 7px 11px; color: var(--text-muted); }
+tbody td strong { color: var(--accent2); font-weight: 600; }
+tbody tr.hl td { color: var(--text); background: rgba(118,185,0,0.08); font-weight: 600; }
+tbody tr.hl2 td { color: var(--text); background: rgba(6,182,212,0.08); }
+
+/* Architecture diagram */
+.arch-diagram { display: flex; flex-direction: column; align-items: center; gap: 0; flex: 1; justify-content: center; }
+.arch-row { display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; }
+.arch-box {
+  border-radius: 8px; padding: 8px 14px; font-size: clamp(10px, 1.05vw, 12px);
+  text-align: center; font-weight: 600; white-space: nowrap;
+}
+.arch-box.green { background: rgba(118,185,0,0.15); border: 1.5px solid var(--accent); color: #b6f07a; }
+.arch-box.blue { background: rgba(6,182,212,0.12); border: 1.5px solid var(--accent2); color: #67e8f9; }
+.arch-box.purple { background: rgba(124,58,237,0.15); border: 1.5px solid var(--accent3); color: #c4b5fd; }
+.arch-box.gray { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-muted); }
+.arch-box.orange { background: rgba(245,158,11,0.12); border: 1.5px solid var(--orange); color: #fcd34d; }
+.arch-arrow { color: var(--text-muted); font-size: 16px; flex-shrink: 0; }
+.arch-sep { width: 100%; height: 1px; background: var(--border); margin: 4px 0; }
+.arch-label { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* Diff table (N1.6 vs N1.7) */
+.diff-grid { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 1; }
+.diff-cell { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: clamp(10px, 1.05vw, 12px); line-height: 1.5; }
+.diff-cell:last-child, .diff-cell:nth-last-child(2), .diff-cell:nth-last-child(3) { border-bottom: none; }
+.diff-header { background: var(--surface); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+.diff-header.n16 { color: var(--accent2); }
+.diff-header.n17 { color: var(--accent); }
+.diff-key { background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; }
+.diff-val-16 { background: rgba(6,182,212,0.04); color: var(--text); }
+.diff-val-17 { background: rgba(118,185,0,0.05); color: #b6f07a; }
+.diff-changed { color: var(--accent) !important; font-weight: 700; }
+
+/* Stats */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 12px; text-align: center; }
+.stat-value { font-size: clamp(18px, 2.2vw, 28px); font-weight: 800; color: var(--accent); margin-bottom: 5px; }
+.stat-label { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 0: Title -->
+<div class="slide slide-title-hero" data-index="0">
+  <div class="slide-inner centered">
+    <div class="title-badge">Paper Review · arXiv 2503.14734</div>
+    <h1 class="title-main">GR00T N1</h1>
+    <p class="title-sub">An Open Foundation Model for Generalist Humanoid Robots<br>Architecture Deep-Dive · N1.6 vs N1.7 Comparison · DreamVu Context</p>
+    <div class="slide-meta">NVIDIA · arXiv 2503.14734v2 · March 2025 &nbsp;·&nbsp; DreamVu Robotics Wiki</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:4.5%"></div></div><div class="slide-counter">1 / 22</div>
+</div>
+
+<!-- 1: Section Overview -->
+<div class="slide slide-section" data-index="1">
+  <div class="slide-inner centered">
+    <div class="section-label">Overview</div>
+    <h2 class="section-title">What is GR00T N1?</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:9.1%"></div></div><div class="slide-counter">2 / 22</div>
+</div>
+
+<!-- 2: What is GR00T N1 -->
+<div class="slide" data-index="2">
+  <div class="slide-inner">
+    <h2 class="slide-title">GR00T N1 — Core Idea</h2>
+    <p class="slide-intro">Vision-Language-Action (VLA) foundation model for humanoid robots with a dual-system design inspired by human cognitive processing (Kahneman, 2011).</p>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">System 2 — VLM (Slow Thinking)</h3>
+        <ul class="bullet-list tight">
+          <li>Pre-trained Vision-Language Model (Eagle-2 in N1, Cosmos-Reason2 in N1.7)</li>
+          <li>Processes images + language instructions</li>
+          <li>Runs at <strong>10 Hz</strong> on NVIDIA L40 GPU</li>
+          <li>Outputs vision-language token embeddings φₜ</li>
+          <li>Language component kept frozen during fine-tuning</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">System 1 — DiT (Fast Acting)</h3>
+        <ul class="bullet-list tight">
+          <li>Diffusion Transformer (DiT) trained with flow matching</li>
+          <li>Generates motor actions via iterative denoising</li>
+          <li>Runs at <strong>120 Hz</strong> for motor control</li>
+          <li>Cross-attends to VLM output tokens φₜ</li>
+          <li>K=4 denoising steps at inference</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box">Both modules are Transformer-based, tightly coupled, and <strong>jointly trained end-to-end</strong>. A single set of weights handles diverse embodiments from tabletop arms to dexterous humanoids.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:13.6%"></div></div><div class="slide-counter">3 / 22</div>
+</div>
+
+<!-- 3: Section Architecture -->
+<div class="slide slide-section" data-index="3">
+  <div class="slide-inner centered">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">Model Architecture & Dimensions</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:18.2%"></div></div><div class="slide-counter">4 / 22</div>
+</div>
+
+<!-- 4: Architecture Diagram -->
+<div class="slide" data-index="4">
+  <div class="slide-inner">
+    <h2 class="slide-title">Full Architecture — Data Flow</h2>
+    <div class="arch-diagram">
+      <!-- Inputs row -->
+      <div class="arch-row">
+        <div class="arch-box blue">Image<br><span style="font-size:0.85em;font-weight:400">224×224 RGB</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box blue">SigLIP-2<br>Vision Encoder</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box blue" style="min-width:120px">Eagle-2 VLM<br><span style="font-size:0.85em;font-weight:400">1.34B params · 10 Hz</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box green">VL Tokens φₜ<br><span style="font-size:0.85em;font-weight:400">12th layer · hidden_dim</span></div>
+      </div>
+      <div class="arch-row" style="justify-content:flex-start; padding-left: 14%">
+        <div class="arch-box blue" style="margin-top:4px">Text Tokenizer</div>
+        <div class="arch-arrow" style="margin-top:4px">↗</div>
+      </div>
+      <div class="arch-sep"></div>
+      <!-- DiT row -->
+      <div class="arch-row">
+        <div class="arch-box orange">Robot State qₜ<br><span style="font-size:0.85em;font-weight:400">joint pos + vel + EEF</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box orange">State Encoder<br><span style="font-size:0.85em;font-weight:400">MLP (embodiment-specific)</span></div>
+        <div class="arch-arrow">↘</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="display:flex;gap:4px">
+            <div class="arch-box purple" style="padding:6px 10px">Cross-Attn<br>↕ φₜ</div>
+            <div class="arch-box purple" style="padding:6px 10px">Self-Attn</div>
+            <div class="arch-box purple" style="padding:6px 10px">Cross-Attn<br>↕ φₜ</div>
+            <div class="arch-box purple" style="padding:6px 10px">Self-Attn</div>
+            <div class="arch-box gray" style="padding:6px 10px">×N</div>
+          </div>
+          <div class="arch-label">DiT Blocks — N alternating cross/self attention layers</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box green">Action Decoder<br><span style="font-size:0.85em;font-weight:400">MLP (embodiment-specific)</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box green">Actions aₜ…aₜ₊ₕ₋₁<br><span style="font-size:0.85em;font-weight:400">H=16 chunk</span></div>
+      </div>
+      <div class="arch-row" style="justify-content:flex-start; padding-left: 14%">
+        <div class="arch-box orange" style="margin-top:4px">Noised Action Aₜᵗ<br><span style="font-size:0.85em;font-weight:400">+ diffusion timestep τ</span></div>
+        <div class="arch-arrow" style="margin-top:4px">→</div>
+        <div class="arch-box orange" style="margin-top:4px">Action Encoder<br><span style="font-size:0.85em;font-weight:400">MLP (embodiment-specific)</span></div>
+        <div class="arch-arrow" style="margin-top:4px">↗</div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:22.7%"></div></div><div class="slide-counter">5 / 22</div>
+</div>
+
+<!-- 5: Architecture Dimensions -->
+<div class="slide" data-index="5">
+  <div class="slide-inner">
+    <h2 class="slide-title">Architecture — Key Dimensions & Parameters</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">VLM (System 2) — Eagle-2 / N1</h3>
+        <ul class="bullet-list tight">
+          <li><strong>Base LLM:</strong> SmolLM2 (finetuned from scratch)</li>
+          <li><strong>Vision encoder:</strong> SigLIP-2</li>
+          <li><strong>Image input:</strong> 224 × 224 px</li>
+          <li><strong>Image tokens:</strong> 64 per frame (via pixel shuffle ↓)</li>
+          <li><strong>VLM params (N1-2B):</strong> 1.34B of 2.2B total</li>
+          <li><strong>Feature layer used:</strong> 12th (middle) layer — faster + higher policy success vs final layer</li>
+          <li><strong>Inference rate:</strong> 10 Hz on L40 GPU</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">DiT (System 1) — Flow Matching</h3>
+        <ul class="bullet-list tight">
+          <li><strong>Architecture:</strong> DiT with adaLN (Vθ)</li>
+          <li><strong>Attention:</strong> Alternating cross-attn ↔ self-attn (×N blocks)</li>
+          <li><strong>Action chunk:</strong> H = 16 frames</li>
+          <li><strong>Denoising steps:</strong> K = 4 at inference (Euler integration)</li>
+          <li><strong>Inference latency:</strong> 63.9 ms per chunk (L40, bf16)</li>
+          <li><strong>Motor rate:</strong> 120 Hz (chunk interpolated)</li>
+          <li><strong>Loss:</strong> Flow matching  ℒ_fm = 𝔼[‖Vθ(φₜ, Aₜᵗ, qₜ) − (ε − Aₜ)‖²]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box purple" style="margin-top:10px">Embodiment-specific modules (State Encoder, Action Encoder, Action Decoder) are small MLPs — lightweight adapters that let one shared DiT backbone work across all robot morphologies without retraining the core.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:27.3%"></div></div><div class="slide-counter">6 / 22</div>
+</div>
+
+<!-- 6: Section N1.6 vs N1.7 -->
+<div class="slide slide-section" data-index="6">
+  <div class="slide-inner centered">
+    <div class="section-label">Version Comparison</div>
+    <h2 class="section-title">N1.6 vs N1.7 — What Changed</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:31.8%"></div></div><div class="slide-counter">7 / 22</div>
+</div>
+
+<!-- 7: N1.6 vs N1.7 diff table -->
+<div class="slide" data-index="7">
+  <div class="slide-inner">
+    <h2 class="slide-title">N1.6 vs N1.7 — Side-by-Side Comparison</h2>
+    <div class="diff-grid">
+      <div class="diff-cell diff-header">Aspect</div>
+      <div class="diff-cell diff-header n16">GR00T N1.6</div>
+      <div class="diff-cell diff-header n17">GR00T N1.7</div>
+
+      <div class="diff-cell diff-key">Total Parameters</div>
+      <div class="diff-cell diff-val-16">3B</div>
+      <div class="diff-cell diff-val-17">3B (same)</div>
+
+      <div class="diff-cell diff-key">VLM Backbone</div>
+      <div class="diff-cell diff-val-16">Eagle-2 (SmolLM2 + SigLIP-2)</div>
+      <div class="diff-cell diff-val-17 diff-changed">Cosmos-Reason2-2B (stronger spatial reasoning)</div>
+
+      <div class="diff-cell diff-key">VLM Base LLM</div>
+      <div class="diff-cell diff-val-16">SmolLM2</div>
+      <div class="diff-cell diff-val-17 diff-changed">Cosmos-Reason2 foundation</div>
+
+      <div class="diff-cell diff-key">Vision Encoder</div>
+      <div class="diff-cell diff-val-16">SigLIP-2 (224×224)</div>
+      <div class="diff-cell diff-val-17">SigLIP-2 (224×224, same)</div>
+
+      <div class="diff-cell diff-key">Max Action Dim</div>
+      <div class="diff-cell diff-val-16">varies per embodiment</div>
+      <div class="diff-cell diff-val-17 diff-changed">132 (GT003 / dexterous hand)</div>
+
+      <div class="diff-cell diff-key">Action Chunk H</div>
+      <div class="diff-cell diff-val-16">16</div>
+      <div class="diff-cell diff-val-17">16 (same)</div>
+
+      <div class="diff-cell diff-key">Inference Steps K</div>
+      <div class="diff-cell diff-val-16">4</div>
+      <div class="diff-cell diff-val-17">4 (same)</div>
+
+      <div class="diff-cell diff-key">Target Hardware</div>
+      <div class="diff-cell diff-val-16">Fourier GR-1 (EXP-001)</div>
+      <div class="diff-cell diff-val-17 diff-changed">Unitree G1 / GT003 retail (EXP-003)</div>
+
+      <div class="diff-cell diff-key">Pretrained Weights Reused?</div>
+      <div class="diff-cell diff-val-16">—</div>
+      <div class="diff-cell diff-val-17 diff-changed">Yes — N1.7 base pretrained; fine-tuned on GT003</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:36.4%"></div></div><div class="slide-counter">8 / 22</div>
+</div>
+
+<!-- 8: VLM Backbone deep-dive -->
+<div class="slide" data-index="8">
+  <div class="slide-inner">
+    <h2 class="slide-title">VLM Backbone — Eagle-2 (N1.6) vs Cosmos-Reason2 (N1.7)</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Eagle-2 — Used in N1 / N1.6</h3>
+        <ul class="bullet-list tight">
+          <li><strong>LLM:</strong> SmolLM2 (finetuned from scratch)</li>
+          <li><strong>Vision:</strong> SigLIP-2 image encoder</li>
+          <li><strong>Pixel shuffle:</strong> 224×224 → 64 tokens/frame</li>
+          <li><strong>VLM params in N1-2B:</strong> 1.34B of 2.2B total</li>
+          <li><strong>Layer used:</strong> 12th (middle) — better than final layer for downstream policy</li>
+          <li><strong>General VL training:</strong> Internet-scale data</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Cosmos-Reason2-2B — Used in N1.7</h3>
+        <ul class="bullet-list tight">
+          <li><strong>Base:</strong> Cosmos-Reason2 world foundation model</li>
+          <li><strong>2B dedicated VLM</strong> — larger than Eagle-2 in N1-2B</li>
+          <li><strong>Stronger spatial + physical reasoning</strong> — trained on physics-aware world model data</li>
+          <li><strong>Better understanding</strong> of 3D scenes, articulated objects, hand-object interaction</li>
+          <li><strong>Vision tokens:</strong> fed to DiT via same cross-attention mechanism</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box orange">The VLM backbone is the <strong>biggest architectural change</strong> between N1.6 and N1.7. Everything else (DiT blocks, flow matching, action chunk H=16, K=4 denoising) remains the same. The DiT and embodiment-specific MLPs are the parts trained/fine-tuned for GT003.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:40.9%"></div></div><div class="slide-counter">9 / 22</div>
+</div>
+
+<!-- 9: Section Training Data -->
+<div class="slide slide-section" data-index="9">
+  <div class="slide-inner centered">
+    <div class="section-label">Training Data</div>
+    <h2 class="section-title">The Data Pyramid</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:45.5%"></div></div><div class="slide-counter">10 / 22</div>
+</div>
+
+<!-- 10: Data Pyramid -->
+<div class="slide" data-index="10">
+  <div class="slide-inner">
+    <h2 class="slide-title">Heterogeneous Training Data — 3-Layer Pyramid</h2>
+    <p class="slide-intro">Data quantity decreases and embodiment specificity increases from bottom to top:</p>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center">
+      <div style="background:rgba(118,185,0,0.12);border:1px solid var(--accent);border-radius:8px;padding:12px 20px;text-align:center">
+        <div style="font-weight:700;color:var(--accent);font-size:13px">▲ PEAK — Real-World Robot Data</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">GR-1 Teleoperation (88.4 hrs) · Open X-Embodiment (DROID, RT-1, Bridge-v2, MUTEX, etc.) · AgiBot-Alpha (140K trajectories)</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px">262.3M frames · 3,288.8 hrs</div>
+      </div>
+      <div style="background:rgba(6,182,212,0.08);border:1px solid var(--accent2);border-radius:8px;padding:12px 20px;text-align:center">
+        <div style="font-weight:700;color:var(--accent2);font-size:13px">▲ MIDDLE — Synthetic Data</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">780K simulation trajectories via DexMimicGen (6,500 hrs equiv.) · 827 hrs neural trajectories via WAN2.1-I2V video generation (10× augmentation of real data)</div>
+        <div style="font-size:11px;color:var(--accent2);margin-top:2px">125.5M sim frames (1,742.6 hrs) + 23.8M neural frames (827.3 hrs)</div>
+      </div>
+      <div style="background:rgba(124,58,237,0.08);border:1px solid var(--accent3);border-radius:8px;padding:12px 20px;text-align:center">
+        <div style="font-weight:700;color:#c4b5fd;font-size:13px">▲ BASE — Web Data & Human Egocentric Video</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Ego4D · EgoExo4D · Assembly-101 · EPIC-KITCHENS · HOI4D · HoloAssist · RH20T-Human (no robot actions — latent actions extracted via VQ-VAE LAPA)</div>
+        <div style="font-size:11px;color:#c4b5fd;margin-top:2px">181.3M frames · 2,517.0 hrs</div>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:8px"><strong>Total pre-training: 592.9M frames · 8,375.7 hours</strong> &nbsp;·&nbsp; Trained for 200,000 gradient steps on 1024 H100 GPUs (~50,000 H100 GPU hours)</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:50.0%"></div></div><div class="slide-counter">11 / 22</div>
+</div>
+
+<!-- 11: Pre-training dataset stats -->
+<div class="slide" data-index="11">
+  <div class="slide-inner">
+    <h2 class="slide-title">Pre-training Dataset Statistics (Table 7)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dataset</th><th>Frames</th><th>Hours</th><th>FPS</th><th>Camera</th><th>Category</th></tr></thead>
+        <tbody>
+          <tr><td><strong>GR-1 Teleop Pre-Training</strong></td><td>6.4M</td><td>88.4</td><td>20</td><td>Egocentric</td><td>Real robot</td></tr>
+          <tr><td>DROID (OXE)</td><td>23.1M</td><td>428.3</td><td>15</td><td>Left, Right, Wrist</td><td>Real robot</td></tr>
+          <tr><td>AgiBot-Alpha</td><td>213.8M</td><td>1,979.4</td><td>30</td><td>Ego, left, right</td><td>Real robot</td></tr>
+          <tr><td>Ego4D</td><td>154.4M</td><td>2,144.7</td><td>30</td><td>Egocentric</td><td>Human</td></tr>
+          <tr><td>EPIC-KITCHENS</td><td>2.3M</td><td>31.7</td><td>20</td><td>Egocentric</td><td>Human</td></tr>
+          <tr><td>GR-1 Simulation</td><td>125.5M</td><td>1,742.6</td><td>20</td><td>Egocentric</td><td>Simulation</td></tr>
+          <tr><td>GR-1 Neural Videos</td><td>23.8M</td><td>827.3</td><td>8</td><td>Egocentric</td><td>Neural-generated</td></tr>
+          <tr class="hl"><td><strong>Total</strong></td><td><strong>592.9M</strong></td><td><strong>8,375.7</strong></td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="highlight-box blue" style="margin-top:8px">Neural trajectories augment the real GR-1 data by <strong>~10×</strong> — from 88 hrs teleoperation → 827 hrs neural video using WAN2.1-I2V finetuned on real robot frames with novel language prompts.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:54.5%"></div></div><div class="slide-counter">12 / 22</div>
+</div>
+
+<!-- 12: Section Key Innovations -->
+<div class="slide slide-section" data-index="12">
+  <div class="slide-inner centered">
+    <div class="section-label">Key Innovations</div>
+    <h2 class="section-title">What's New in GR00T N1</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:59.1%"></div></div><div class="slide-counter">13 / 22</div>
+</div>
+
+<!-- 13: Key innovations -->
+<div class="slide" data-index="13">
+  <div class="slide-inner">
+    <h2 class="slide-title">Five Key Technical Innovations</h2>
+    <ul class="bullet-list">
+      <li><strong>Latent Action Pretraining (LAPA):</strong> For action-less human videos (Ego4D, etc.), a VQ-VAE extracts latent action embeddings from consecutive frames. Encoder: current frame xₜ → latent zₜ. Decoder: zₜ + xₜ → reconstructed xₜ₊ₕ. Enables training the VLA on internet-scale video without robot labels.</li>
+      <li><strong>Neural Trajectory Generation (10× augmentation):</strong> Fine-tune WAN2.1-I2V video model on 88 hrs of real robot teleoperation. Generate 827 hrs of counterfactual robot trajectories with novel language prompts. IDM or LAPA labels provide pseudo-actions for training.</li>
+      <li><strong>Auxiliary Object Detection Loss:</strong> VLM must also predict the 2D bounding box of the target object (OWL-v2 annotations) during training. Loss: ℒ = ℒ_fm + ℒ_det. Improves spatial grounding without extra inference cost.</li>
+      <li><strong>Middle-Layer VLM Representations:</strong> Extract features from 12th LLM layer (not final). Empirically faster inference AND higher downstream policy success rate than final-layer features.</li>
+      <li><strong>DexMimicGen Simulation Scale:</strong> Few human teleoperation demos → 780K simulation trajectories (6,500 hrs equivalent) via automated segmentation, transformation, and replay. 10,000 demos per (source, target) receptacle pair in pre-training.</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:63.6%"></div></div><div class="slide-counter">14 / 22</div>
+</div>
+
+<!-- 14: Training strategy -->
+<div class="slide" data-index="14">
+  <div class="slide-inner">
+    <h2 class="slide-title">Training Strategy — Pre-training → Post-training</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Pre-training (N1 Base)</h3>
+        <ul class="bullet-list tight">
+          <li>Flow-matching loss on all data pyramid layers</li>
+          <li>VLM language tokenizer: <strong>frozen</strong></li>
+          <li>VLM vision encoder: <strong>unfrozen</strong></li>
+          <li>DiT: <strong>unfrozen</strong></li>
+          <li>Batch size: 16,384</li>
+          <li>Steps: 200,000</li>
+          <li>LR: 1e-4, AdamW, cosine schedule</li>
+          <li>Hardware: 1024 H100 GPUs (NVIDIA OSMO)</li>
+          <li>GPU hours: ~50,000 H100</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Post-training / Fine-tuning (EXP-003 GT003)</h3>
+        <ul class="bullet-list tight">
+          <li>Start from <strong>N1.7 pretrained checkpoint</strong></li>
+          <li>VLM language tokenizer: <strong>frozen</strong></li>
+          <li>VLM vision encoder: <strong>unfrozen</strong></li>
+          <li>DiT: <strong>unfrozen</strong></li>
+          <li>Batch size: 64 (4 GPUs × 16)</li>
+          <li>Steps: 20,000</li>
+          <li>Hardware: 4× RTX PRO 6000 Blackwell (PCIe)</li>
+          <li>Dataset: GT003 (26,320 episodes, 132D actions)</li>
+          <li>Co-trained with neural trajectories 1:1</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box">For fine-tuning only the adapter layers (state/action encoders + action decoder) + DiT: batch size up to 200. When tuning the vision encoder too: batch size up to 16. EXP-003 tunes the full model.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:68.2%"></div></div><div class="slide-counter">15 / 22</div>
+</div>
+
+<!-- 15: Section Results -->
+<div class="slide slide-section" data-index="15">
+  <div class="slide-inner centered">
+    <div class="section-label">Performance</div>
+    <h2 class="section-title">Benchmark Results</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:72.7%"></div></div><div class="slide-counter">16 / 22</div>
+</div>
+
+<!-- 16: Simulation results -->
+<div class="slide" data-index="16">
+  <div class="slide-inner">
+    <h2 class="slide-title">Simulation Results (100 demos/task post-training)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>RoboCasa (24 tasks)</th><th>DexMG (9 tasks)</th><th>GR-1 (24 tasks)</th><th>Average</th></tr></thead>
+        <tbody>
+          <tr><td>BC-Transformer</td><td>26.3%</td><td>53.9%</td><td>16.1%</td><td>26.4%</td></tr>
+          <tr><td>Diffusion Policy</td><td>25.6%</td><td>56.1%</td><td>32.7%</td><td>33.4%</td></tr>
+          <tr class="hl"><td><strong>GR00T-N1-2B</strong></td><td><strong>32.1%</strong></td><td><strong>66.5%</strong></td><td><strong>50.0%</strong></td><td><strong>45.0%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="highlight-box" style="margin-top:12px">GR00T N1 outperforms Diffusion Policy by <strong>+17.3% average</strong>, with the largest gain on GR-1 humanoid tasks (+17.3%) — the most complex cross-embodiment benchmark. Gains grow with more demonstrations.</div>
+    <div class="highlight-box blue" style="margin-top:8px"><strong>Neural trajectory augmentation</strong> adds +4.2% / +8.8% / +6.8% average on RoboCasa for 30 / 100 / 300 demo regimes. More data → bigger gains from neural augmentation.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:77.3%"></div></div><div class="slide-counter">17 / 22</div>
+</div>
+
+<!-- 17: Real-world results -->
+<div class="slide" data-index="17">
+  <div class="slide-inner">
+    <h2 class="slide-title">Real-World Results — GR-1 Humanoid (Full Data)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model / Data</th><th>Pick-and-Place</th><th>Articulated</th><th>Industrial</th><th>Coordination</th><th>Average</th></tr></thead>
+        <tbody>
+          <tr><td>Diffusion Policy (10%)</td><td>3.0%</td><td>14.3%</td><td>6.7%</td><td>27.5%</td><td>10.2%</td></tr>
+          <tr><td>Diffusion Policy (full)</td><td>36.0%</td><td>38.6%</td><td>61.0%</td><td>62.5%</td><td>46.4%</td></tr>
+          <tr class="hl2"><td><strong>GR00T-N1-2B (10%)</strong></td><td>35.0%</td><td>62.0%</td><td>31.0%</td><td>50.0%</td><td>42.6%</td></tr>
+          <tr class="hl"><td><strong>GR00T-N1-2B (full)</strong></td><td><strong>82.0%</strong></td><td><strong>70.9%</strong></td><td><strong>70.0%</strong></td><td><strong>82.5%</strong></td><td><strong>76.8%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="bullet-list tight" style="margin-top:10px">
+      <li><strong>Pre-training zero-shot:</strong> 76.6% on bimanual handover, 73.3% on novel object placement — no task-specific fine-tuning needed</li>
+      <li><strong>10% data regime:</strong> GR00T-N1 (42.6%) nearly matches Diffusion Policy full data (46.4%) — <strong>10× data efficiency</strong></li>
+      <li><strong>Full data:</strong> GR00T-N1 beats Diffusion Policy by <strong>+30.4%</strong> average</li>
+    </ul>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:81.8%"></div></div><div class="slide-counter">18 / 22</div>
+</div>
+
+<!-- 18: Section DreamVu Context -->
+<div class="slide slide-section" data-index="18">
+  <div class="slide-inner centered">
+    <div class="section-label">DreamVu Context</div>
+    <h2 class="section-title">N1.6 → N1.7 in DreamVu Experiments</h2>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:86.4%"></div></div><div class="slide-counter">19 / 22</div>
+</div>
+
+<!-- 19: EXP-001 vs EXP-003 -->
+<div class="slide" data-index="19">
+  <div class="slide-inner">
+    <h2 class="slide-title">EXP-001 (N1.6) vs EXP-003 (N1.7) at DreamVu</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">EXP-001 — GR00T N1.6 Baseline</h3>
+        <ul class="bullet-list tight">
+          <li><strong>Model:</strong> nvidia/GR00T-N1.6-3B</li>
+          <li><strong>VLM:</strong> Eagle-2 (SmolLM2 + SigLIP-2)</li>
+          <li><strong>Task:</strong> Pick-and-place eval on Isaac Sim (Robobench)</li>
+          <li><strong>Embodiment:</strong> BEHAVIOR_R1_PRO (Galaxea R1 Pro)</li>
+          <li><strong>Dataset:</strong> demo_data/gr1.PickNPlace (5 eps, 2096 frames)</li>
+          <li><strong>Goal:</strong> Zero-shot baseline before fine-tuning</li>
+          <li><strong>Status:</strong> Active — establishing baseline</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">EXP-003 — GR00T N1.7 Fine-tuning</h3>
+        <ul class="bullet-list tight">
+          <li><strong>Model:</strong> nvidia/GR00T-N1.7-3B</li>
+          <li><strong>VLM:</strong> Cosmos-Reason2-2B (better spatial reasoning)</li>
+          <li><strong>Task:</strong> Retail manipulation (reach, grasp, navigate)</li>
+          <li><strong>Embodiment:</strong> NEW_EMBODIMENT (Unitree G1)</li>
+          <li><strong>Dataset:</strong> GT003 — 26,320 eps, 7.5M frames, 132D</li>
+          <li><strong>Data pipeline:</strong> SABER (MediaPipe + HaMeR/HAWOR)</li>
+          <li><strong>Hardware:</strong> 4× RTX PRO 6000 Blackwell (PCIe)</li>
+          <li><strong>Status:</strong> Active — training in progress</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:10px">Both experiments use the <strong>same dual-system DiT + VLM architecture</strong>. The upgrade from N1.6 → N1.7 swaps the VLM backbone (Eagle-2 → Cosmos-Reason2) giving the model stronger physical scene understanding for retail environments.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:90.9%"></div></div><div class="slide-counter">20 / 22</div>
+</div>
+
+<!-- 20: Limitations -->
+<div class="slide" data-index="20">
+  <div class="slide-inner">
+    <h2 class="slide-title">Limitations & Open Problems</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3 class="col-title">Known Limitations (Paper)</h3>
+        <ul class="bullet-list tight">
+          <li>Focused on <strong>short-horizon tabletop tasks</strong> — no long-horizon loco-manipulation yet</li>
+          <li>Synthetic neural trajectories still struggle with <strong>physics diversity</strong> (liquids, articulated objects)</li>
+          <li>Post-training on one embodiment can <strong>lose cross-task generalization</strong> (e.g. bimanual handover capability lost after single-arm fine-tuning)</li>
+          <li>Real-world data still expensive — generalization degrades on OOD objects</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 class="col-title">Open Problems for DreamVu</h3>
+        <ul class="bullet-list tight">
+          <li>GT003 is <strong>hand-only</strong> (132D) — no body locomotion in data yet</li>
+          <li>NCCL P2P crash on Blackwell PCIe limits throughput vs NVLink (EXP-003)</li>
+          <li>MediaPipe wrist orientation gap → HaMeR/HAWOR helps but adds latency in SABER pipeline</li>
+          <li>Retail: shelf collision avoidance + graceful failure recovery not yet in reward</li>
+          <li>No loco-manipulation yet: walking + reaching shelf simultaneously</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box orange">Roadmap: stronger VLM backbone (N1.7 Cosmos-Reason2) + loco-manipulation data + whole-body RL policy (motion retargeting framework) → full retail humanoid deployment on Unitree G1.</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:95.5%"></div></div><div class="slide-counter">21 / 22</div>
+</div>
+
+<!-- 21: Summary -->
+<div class="slide slide-title-hero" data-index="21">
+  <div class="slide-inner centered">
+    <div class="title-badge">Summary</div>
+    <h1 class="title-main" style="font-size:clamp(22px,3vw,40px)">GR00T N1 — Key Takeaways</h1>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;text-align:left;max-width:800px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:clamp(11px,1.1vw,13px)">
+        <div style="color:var(--accent);font-weight:700;margin-bottom:6px">Architecture</div>
+        Dual-system: Eagle-2/Cosmos VLM (10Hz) + DiT flow-matching (120Hz). H=16 chunk, K=4 denoise, embodiment MLPs adapt to any robot.
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:clamp(11px,1.1vw,13px)">
+        <div style="color:var(--accent);font-weight:700;margin-bottom:6px">N1.6 → N1.7 Change</div>
+        VLM backbone: Eagle-2 → Cosmos-Reason2-2B. Same DiT architecture, same 3B total params. Better spatial/physical reasoning.
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:clamp(11px,1.1vw,13px)">
+        <div style="color:var(--accent2);font-weight:700;margin-bottom:6px">Training Data</div>
+        592.9M frames, 8,375.7 hrs. 3-layer pyramid: real robot + synthetic (DexMimicGen + neural video) + human egocentric.
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:clamp(11px,1.1vw,13px)">
+        <div style="color:var(--accent2);font-weight:700;margin-bottom:6px">Performance</div>
+        76.8% real-world avg (vs 46.4% Diffusion Policy). 10× data efficiency — 10% data ≈ full-data baseline.
+      </div>
+    </div>
+    <div class="slide-meta" style="margin-top:20px">arXiv 2503.14734v2 · NVIDIA · March 2025 · DreamVu Robotics Wiki</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100.0%"></div></div><div class="slide-counter">22 / 22</div>
+</div>
+
+</div><!-- /deck -->
+
+<div id="nav">
+  <button class="nav-btn" id="btn-prev">← Prev</button>
+  <span id="slide-num">1 / 22</span>
+  <button class="nav-btn" id="btn-next">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+function go(n) {
+  slides[cur].classList.remove('active'); slides[cur].classList.add('prev');
+  setTimeout(() => slides[cur].classList.remove('prev'), 400);
+  cur = Math.max(0, Math.min(slides.length - 1, n));
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = (cur + 1) + ' / ' + slides.length;
+}
+document.getElementById('btn-prev').onclick = () => go(cur - 1);
+document.getElementById('btn-next').onclick = () => go(cur + 1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0); if (e.key === 'End') go(slides.length - 1);
+});
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1); });
+go(0);
+</script>
+</body>
+</html>

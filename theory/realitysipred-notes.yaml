@@ -1,0 +1,261 @@
+meta:
+  title: "realitySipred: Gaussian Splats for 3D Assets & Real2Sim"
+  subtitle: Project Brief — DreamVu Research
+  date: "2026-09-16"
+  theme: dark
+
+slides:
+
+  - type: title
+    title: "realitySipred"
+    subtitle: "Gaussian Splats for 3D Assets & the Real2Sim Pipeline"
+    badge: "Project Brief"
+    meta: "DreamVu Research · 2026"
+
+  - type: bullets
+    title: "Agenda"
+    points:
+      - "What is a Gaussian Splat, and why does it matter for us"
+      - "Project goal: real-world capture → usable simulation assets"
+      - "Why the DreamVu Alia Pro camera is our advantage in generating splats"
+      - "Strategy: how we out-flank the competitor benchmark"
+      - "Progress so far — what's actually working today"
+      - "Phase 1 experiments — done and pending"
+      - "Phase 2 — from splats to simulation-ready, physics-interactable assets"
+      - "Splat-world vs. mesh-world: the strategic product bet"
+      - "Non-rigid objects and 4D Gaussian Splatting"
+      - "Hardware & systems roadmap"
+      - "Proposed team structure"
+      - "API / microservices release plan"
+
+  - type: section
+    label: "Background"
+    title: "What Is a Gaussian Splat?"
+
+  - type: bullets
+    title: "3D Gaussian Splatting, in Plain Terms"
+    intro: "A relatively new scene representation (2023) — worth grounding before anything else."
+    points:
+      - "A real scene is represented as **millions of tiny 3D Gaussians** (soft, fuzzy blobs), each with a position, orientation/scale (an ellipsoid), a color, and an opacity"
+      - "Trained from ordinary posed photos/video — no depth sensor or LiDAR required, though extra sensors help (see next section)"
+      - "Rendered with a fast, **differentiable rasterizer** — new camera viewpoints can be synthesized in real time, at photorealistic quality"
+      - "**Not a mesh:** no fixed topology, no polygons — this is exactly what makes it fast and photoreal, and exactly what makes physics/robotics use cases harder (more on this later)"
+    highlight: "Think of it as the representation between a photo and a 3D model — it looks and moves like real 3D, but doesn't have the structure a game engine or physics engine expects."
+
+  - type: section
+    label: "Project"
+    title: "realitySipred — Goal"
+
+  - type: bullets
+    title: "What We're Trying to Do"
+    intro: "realitySipred — the name is a nod to 'reality': turning captured reality into something usable downstream."
+    points:
+      - "Convert **real-world captures** into **usable 3D assets** — not just a pretty viewer scene"
+      - "Primary consumer: **robotics data generation and training** — synthetic-but-grounded-in-reality rollouts"
+      - "Secondary consumers: other **simulation use cases** wherever a real environment needs to become a simulatable one"
+    highlight: "The bar is not 'does it look good' — it's 'can a robot policy be trained or evaluated against it.'"
+
+  - type: two_column
+    title: "Two-Phase Structure"
+    left_title: "Phase 1 — Capture & Generate"
+    left_points:
+      - "Get a convincing, high-fidelity Gaussian Splat from real-world capture"
+      - "Handle the practical mess: rectification, dynamic objects, blur, sync"
+      - "Explore every sensor modality the capture rig offers, not just RGB"
+    right_title: "Phase 2 — Sim-Ready Conversion"
+    right_points:
+      - "Turn a static splat into an asset that can be perturbed and interacted with"
+      - "Add physics-based manipulation directly on the splat representation"
+      - "Generate diverse, varied training data from one real capture"
+
+  - type: section
+    label: "Advantage"
+    title: "Why the DreamVu Alia Pro Camera"
+
+  - type: bullets
+    title: "The Alia Pro as a Splat-Generation Advantage"
+    intro: "Most Gaussian Splat pipelines in the wild are built on RGB-only image sets. We don't have to be."
+    points:
+      - "Alia Pro captures **stereo depth, IMU, and multi-camera rig geometry** alongside RGB — all in one device"
+      - "These aren't just \"extra data\" — they're strong **priors** that a pure-RGB pipeline has to instead recover the hard way (structure-from-motion alone, no ground truth scale or gravity reference)"
+      - "Rig extrinsics are known by construction, not estimated — a meaningfully different starting point than a single moving camera"
+    highlight: "Every modality below is something a competitor's RGB-only rig doesn't have access to at all."
+
+  - type: table
+    title: "Beyond RGB: The Modality Strategy"
+    note: "This is the core of how we intend to out-flank a pure-RGB competitor benchmark — not a better RGB algorithm, but strictly more signal than RGB alone provides."
+    headers: ["Modality", "What it gives the splat pipeline", "Status"]
+    rows:
+      - ["RGB (mono/multi video)", "Base photometric signal — what every competitor pipeline runs on", "**Explored**"]
+      - ["IMU", "Gravity/orientation reference, motion prior for SLAM, cross-check for pose drift", "**Explored**"]
+      - ["Rig extrinsics (multi-camera)", "Known relative camera poses as a prior for splat generation, not just estimated", "**Explored**, augmented with IMU"]
+      - ["Depth (stereo)", "Direct metric geometry — should sharply reduce splat noise/ambiguity vs. RGB-only", "Pending"]
+      - ["Semantic (SAM segmentation)", "Object-level structure for later splat editing, object insertion, and asset separation", "Planned (Phase 2 dependency)"]
+
+  - type: section
+    label: "Status"
+    title: "Progress So Far"
+
+  - type: stats
+    title: "Where We Actually Are Today"
+    stats:
+      - value: "Achieved"
+        label: "Convincingly good splats (human-in-the-loop edit + aesthetic tuning)"
+      - value: "Achieved"
+        label: "Physics-based manipulation directly on a splat (rigid-body bounce demo)"
+      - value: "EXP-005/006/007"
+        label: "Underlying experiments — see wiki for full detail + live links"
+
+  - type: bullets
+    title: "The Honest Caveat Behind \"Achieved\""
+    points:
+      - "Convincingly good splats currently **assume a human in the loop** to edit and tune for aesthetics — not yet a push-button pipeline"
+      - "Physics-based manipulation (EXP-007) is demonstrated at the **rigid-body-proxy** tier — cheapest of three cost tiers, correct choice for \"falls/bounces/collides,\" not yet deformation"
+      - "Both are real, working, and conclusive at their current scope — the caveats define next steps, not doubts about the result"
+
+  - type: section
+    label: "Phase 1"
+    title: "Experiments — Completed"
+
+  - type: bullets
+    title: "Done: Mono-Video Splat Pipeline"
+    points:
+      - "**Image rectification** — handled"
+      - "**Dynamic objects** in the scene — handled"
+      - "**Motion blur** — handled"
+      - "**SLAM fine-tuned** for this capture pipeline specifically, not used off-the-shelf"
+
+  - type: bullets
+    title: "Done: Multi-Sensor & Multi-Camera"
+    points:
+      - "**IMU as a modality** — explored as a gravity/orientation reference and pose cross-check"
+      - "**Multi-video feeds from a camera rig** — explored, not just single-camera capture"
+      - "**Rig extrinsics** — explored and used as a **prior for splat generation** (not just a downstream correction)"
+      - "Rig extrinsics **augmented with IMU** for a combined pose correction — the natural next step once both were independently validated"
+
+  - type: section
+    label: "Phase 1"
+    title: "Experiments — Open"
+
+  - type: bullets
+    title: "Pending / Unexplored"
+    points:
+      - "**Depth-based modality** (stereo) — not yet explored for splat generation, expected to directly reduce geometric noise/ambiguity"
+      - "**Surface-based splats** (e.g. 2D Gaussian Splatting / surfels) — remaining to explore, may better suit flat/planar real-world surfaces (tables, floors, walls) than volumetric 3DGS"
+      - "**Beta Splatting** — any concrete advantage over standard Gaussian splatting is still unverified for our use case"
+
+  - type: bullets
+    title: "Relighting — The Hardest Open Problem"
+    intro: "Not unique to us — this is an unsolved industry-wide problem today."
+    points:
+      - "A splat bakes in the lighting/shading of the **environment it was captured in**"
+      - "Insert a foreign object (any asset not captured in that same lighting) and it visibly looks **\"alien\"** — its shading doesn't match the scene's light sources"
+      - "No robust general relighting solution exists in the field today — this constrains any \"insert a new object into a real scene\" workflow, not just ours"
+    highlight: "This is a real, current limitation to be upfront about — not something we expect to solve incidentally as a side effect of other work."
+
+  - type: section
+    label: "Phase 2"
+    title: "Splats → Simulation-Ready Assets"
+
+  - type: bullets
+    title: "The Phase 2 Problem"
+    intro: "Phase 1 gets a good-looking splat. Phase 2 makes it usable for data generation."
+    points:
+      - "Goal: capture data sets across **all the variation/perturbation** a real-world capture alone can't give you"
+      - "First working capability: **physics-based manipulation on the splat itself** (EXP-007) — an object falls, bounces, picks up spin, directly composited into the real captured splat world"
+      - "This validates the direction: physics does **not** require first converting the scene to a mesh"
+
+  - type: two_column
+    title: "Splat-World vs. Mesh-World for Physics"
+    left_title: "Splat-Based Physics (our primary bet)"
+    left_points:
+      - "No lossy splat→mesh conversion step needed"
+      - "Keeps the real captured visual fidelity throughout"
+      - "Rigid-body-proxy transform reapplication is cheap and already demonstrated working"
+      - "Newer ground — less tooling, but also less IP/competitive lock-in against us"
+    right_title: "Mesh-Based Physics (secondary offering)"
+    right_points:
+      - "Industry-standard — mature physics engines, asset pipelines, Isaac/Omniverse tooling"
+      - "Heavily dominated by existing players and their IP — hard to differentiate on"
+      - "Still useful and requested by some customers — kept ready, not abandoned"
+      - "Explored in parallel (EXP-006): RANSAC plane fits, convex-hull slabs, USD export"
+
+  - type: bullets
+    title: "The Strategic Call"
+    highlight: "Keep splat-based physics-manipulation as our **primary product direction** — it's where the competitive landscape is least dominated by incumbent IP. Keep the mesh-based pipeline maintained and ready as a **secondary offering** for customers who specifically need it."
+    points:
+      - "This is a product-positioning decision as much as a technical one — worth surfacing explicitly, not just letting the tech direction imply it"
+      - "Both pipelines share upstream capture/sensor work (Phase 1) — this is not a duplicated effort, just a fork at the asset-conversion stage"
+
+  - type: section
+    label: "Phase 2"
+    title: "Next Challenge: Non-Rigid Objects"
+
+  - type: bullets
+    title: "Rigid-Body-Proxy Isn't Enough on Its Own"
+    intro: "EXP-007 validates rigid motion (falls, bounces, collides) directly on a splat. Real-world manipulation scenes are not all rigid."
+    points:
+      - "The rigid-body-proxy formula reapplies **one transform to every Gaussian** in an object — correct for a rigid ball or box, wrong for anything that bends, folds, or stretches"
+      - "Cloth, soft/deformable produce, flexible tooling, and general non-rigid manipulation targets are common in real robotics scenes — this is a core gap, not an edge case, for making splat-based physics feel intuitive and close to real-world behavior"
+      - "Closing this gap is what actually determines whether Phase 2 output is broadly useful for manipulation data generation, not just rigid pick-and-place"
+    highlight: "**4D Gaussian Splatting (4D-GS)** — Gaussians extended with a learned time-varying/deformation component — is the accurate answer here: it models non-rigid motion natively inside the splat representation itself, rather than bolting a separate mesh/cage-and-skinning step on top of a static splat."
+
+  - type: section
+    label: "Roadmap"
+    title: "Hardware & Systems"
+
+  - type: bullets
+    title: "What's Next on the Capture Side"
+    points:
+      - "**Camera firmware design for IMU-based sparse SLAM** — pushing the SLAM/IMU fusion work (Phase 1) down into firmware rather than post-processing"
+      - "**Height-changing mechanism** on our in-house robot platform — for capturing genuinely diverse viewpoints of the same scene, not just diverse locations"
+      - "**True stereo with hardware trigger** — explored as a possibility for tighter stereo depth sync than software-triggered capture allows"
+
+  - type: bullets
+    title: "Open Challenges Carried Into Phase 2"
+    points:
+      - "Splat-based vs. mesh-based world tradeoffs for physics interaction — an ongoing evaluation, not a one-time decision"
+      - "Relighting remains unsolved and will keep limiting object-insertion realism until addressed (by us or the field)"
+      - "Human-in-the-loop aesthetic tuning is still required for \"convincingly good\" results — reducing that dependency is an open problem, not yet started"
+
+  - type: section
+    label: "Resourcing"
+    title: "Proposed Team Structure"
+
+  - type: table
+    title: "Proposed Team Structure"
+    note: "7 dedicated roles, plus a shared systems resource across the team."
+    headers: ["Role", "Count", "Notes"]
+    rows:
+      - ["Forward Engineers", "2", "Pipeline/production engineering"]
+      - ["Research Scientists", "2", "Splat generation, modality fusion, non-rigid/4D-GS research"]
+      - ["Human-in-the-Loop Experts", "3", "One of the three also serves as **Lead Simulation Expert**"]
+      - ["Systems Experts", "Shared", "Pooled resource across the team, not dedicated headcount"]
+
+  - type: section
+    label: "Engineering"
+    title: "API / Microservices Release Plan"
+
+  - type: bullets
+    title: "Principle: Services, Not Shared Scripts"
+    intro: "How the team consumes each other's work, day to day."
+    points:
+      - "We will **not** share raw code between team members to rerun locally — every capability is consumed as an **internally-hosted API**, not a script someone else has to clone and re-execute"
+      - "One hosted service per capability means one source of truth — no drift between \"whoever last edited the script\" copies of the same pipeline"
+      - "Onboarding a new team member (or a new consuming team) means pointing them at an API, not walking them through someone else's experiment repo"
+    highlight: "This turns EXP-005/006/007's experiment scripts into productized internal services, not one-off research code."
+
+  - type: table
+    title: "Planned Internal Microservices"
+    note: "Each is an API surface over an existing experiment/pipeline — not new research, a release/productization step on top of it."
+    headers: ["Service", "What it exposes", "Built on"]
+    rows:
+      - ["Splat Generation API", "Generate a splat from a capture via **config parameters** (modality mix, quality tier, source rig) instead of hand-editing a script", "Phase 1 capture pipeline (EXP-005)"]
+      - ["Physics Property Editor", "Set/tune rigid-body properties on a splat object (mass, restitution, friction, collider shape) through an editor/API, not hardcoded constants", "Phase 2 physics pipeline (EXP-007)"]
+      - ["Human-in-the-Loop Correction Interface", "Turns splat aesthetic review/correction into a **supported interface**, not the ad hoc manual step it is today", "The human-in-the-loop caveat behind \"convincingly good splats\""]
+
+  - type: title
+    title: "Discussion"
+    subtitle: "realitySipred — Gaussian Splats for 3D Assets & Real2Sim"
+    badge: "Project Brief"
+    meta: "See EXP-005 / EXP-006 / EXP-007 in the wiki for full experiment detail and live demo links"
